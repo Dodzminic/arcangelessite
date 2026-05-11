@@ -15,7 +15,7 @@ You can view my source code here: [https://github.com/Dodzminic/arcangelessite](
 ## Tech Used:
 - Python, Django, MySQL, and Bootstrap 5
 
-## Student Info:
-- **Name:** Desriel Dominic Arcangeles
+## StudentS Info:
+- **Name:** ARCANGELES BLANCO ONAS
 - **Section:** BSIT 2A
 - **School:** Filamer Christian University
