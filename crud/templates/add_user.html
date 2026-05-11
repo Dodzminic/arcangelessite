@@ -1,0 +1,23 @@
+{% extends 'index.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <!-- enctype is MANDATORY for images to work -->
+            <form method="POST" enctype="multipart/form-data" class="p-4 shadow rounded bg-white">
+                {% csrf_token %}
+                <h3 class="mb-4 text-dark text-center">{% if edit_mode %}Edit User{% else %}Add New User{% endif %}</h3>
+                
+                <div class="form-group text-dark">
+                    {{ form.as_p }}
+                </div>
+
+                <div class="mt-4 d-grid gap-2">
+                    <button type="submit" class="btn btn-success">Save User Data</button>
+                    <a href="{% url 'user_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
