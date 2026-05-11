@@ -1,22 +1,21 @@
-# 🌟 ArcangeleSite v2.0 - User Management System
+# ArcangeleSite v2.0 - User Management System
 
-A professional, Django-powered web application built for **BSIT 2C**. This project manages user profiles with full database integration and a clean, sophisticated UI.
+This is my Web Development project for **BSIT 2A**. It is a simple User Management System that allows you to add, view, edit, and delete user profiles. It uses Django as the backend and MySQL (XAMPP) for the database.
 
-##  Key Features
-- **Full CRUD:** Create, Read, Update, and Delete user records.
-- **MySQL Integration:** Powered by XAMPP/MariaDB for reliable data storage.
-- **Smart Search:** Real-time username filtering.
-- **Advanced Sorting:** Sort users alphabetically (A-Z) or by date added.
-- **Profile Pictures:** Support for image uploads and storage.
-- **Responsive Design:** Built with Bootstrap for a "Quiet Luxury" aesthetic.
+## Features I added:
+- **CRUD Operations:** I can create, read, update, and delete users.
+- **Search Bar:** You can search for specific usernames.
+- **Sorting:** I added a dropdown to sort users by Name (A-Z) or by the time they were added.
+- **Profile Pictures:** Users can upload their own photos.
+- **Database:** Fully connected to MySQL via XAMPP.
 
-##  Tech Stack
-- **Framework:** Django 4.2+
-- **Language:** Python 3.12
-- **Database:** MySQL (XAMPP)
-- **Frontend:** Bootstrap 5, HTML5, CSS3
+## 🔗 GitHub Link
+You can view my source code here: [https://github.com/Dodzminic/arcangelessite](https://github.com/Dodzminic/arcangelessite)
 
-##  How to Run Locally
-1. Clone the repository:
-   ```bash
-   git clone [https://github.com/Dodzminic/arcangelessite.git](https://github.com/Dodzminic/arcangelessite.git)
+## Tech Used:
+- Python, Django, MySQL, and Bootstrap 5
+
+## Student Info:
+- **Name:** Desriel Dominic Arcangeles
+- **Section:** BSIT 2A
+- **School:** Filamer Christian University
