@@ -10,6 +10,11 @@ class UserForm(forms.ModelForm):
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm password'}),
         label="Confirm Password"
     )
+    # Added required=False so the form doesn't reset when photo is blank
+    profile_pic = forms.ImageField(
+        required=False, 
+        widget=forms.FileInput(attrs={'class': 'form-control'})
+    )
 
     class Meta:
         model = UserProfile

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Gender | ArcangeleSite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background: radial-gradient(circle at top right, #fdfbfb 0%, #ebedee 100%);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(15px); 
+            border-radius: 20px; 
+            border: 1px solid rgba(255,255,255,0.4);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-card">
+        <h4 class="fw-bold mb-4 text-dark text-center">Update Gender</h4>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-muted text-uppercase">Gender Name</label>
+                {{ form.gender }}
+                {% if form.gender.errors %}
+                    <div class="text-danger small mt-1">{{ form.gender.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-dark rounded-pill py-2 fw-bold">Save Changes</button>
+                <a href="{% url 'user_list' %}" class="btn btn-link text-muted small mt-2 text-decoration-none">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

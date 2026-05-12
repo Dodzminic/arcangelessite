@@ -6,11 +6,13 @@ class Gender(models.Model):
         return self.gender
 
 class UserProfile(models.Model):
-    username = models.CharField(max_length=100, unique=True) # Criteria 6 (3%)
-    password = models.CharField(max_length=100)
+    username = models.CharField(max_length=100, unique=True)
+    password = models.CharField(max_length=255) # Long for hashing
     email = models.EmailField()
-    profile_pic = models.ImageField(upload_to='profiles/', null=True, blank=True) # Criteria 2 (25%)
+    profile_pic = models.ImageField(upload_to='profiles/', null=True, blank=True)
     gender = models.ForeignKey(Gender, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True) # Soft Delete
+    created_at = models.DateTimeField(auto_now_add=True) # Audit Log
 
     def __str__(self):
         return self.username
