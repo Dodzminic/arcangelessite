@@ -2,47 +2,47 @@ Markdown
 # ArcangeleSite Premium | Student Directory v2.0
 **A Sophisticated Student Management System for BSIT 2A**
 
-ArcangeleSite is a high-end, responsive student directory built with Django. It combines technical efficiency with a "Quiet Luxury" and "Sophisticated Minimalist" design aesthetic, featuring Glassmorphism UI elements and real-time data processing.
+ArcangeleSite is a high-end, responsive student directory built with Django. It bridges the gap between administrative utility and a "Quiet Luxury" design aesthetic, featuring Glassmorphism UI elements, real-time search functionality, and a secure data management architecture.
 
 ## ✨ Key Features
 
-* **Live Search & Filter:** Real-time search functionality with a custom-tuned 1.2s delay for a seamless user experience.
-* **Premium Glassmorphism UI:** Built with Tailwind CSS and Bootstrap, utilizing backdrop filters and high-contrast dark themes.
-* **Soft Delete System:** An archive-first approach to data management, ensuring student records are never accidentally lost.
-* **Dynamic Image Handling:** Smart profile picture uploads with a custom "N/A" minimalist placeholder for missing media.
-* **Data Portability:** Integrated CSV export functionality for administrative reporting.
-* **Bulk Actions:** Efficient multi-select archiving system for database management.
+* **Live Search & Auto-Load:** Integrated JavaScript-driven search with a 1.2s debounce timer for a seamless, "app-like" experience without manual refreshing.
+* **Premium Glassmorphism UI:** A custom frontend utilizing backdrop filters, high-contrast dark themes, and the Plus Jakarta Sans typeface for a modern look.
+* **Soft Delete & Archiving:** Implements a logical deletion system (is_active flag), ensuring student data remains retrievable even after removal from the primary directory.
+* **Smart Media Management:** Robust profile picture handling with `enctype="multipart/form-data"` support and minimalist "N/A" placeholders for records without media.
+* **Relational Database Integrity:** Normalized database structure (3NF) managing Student-Gender relationships via Django Foreign Keys.
+* **Administrative Export:** One-click CSV generation for fast data reporting and portability.
 
 ## 🛠️ Tech Stack
 
 * **Backend:** Python 3.x, Django 5.x
 * **Frontend:** HTML5, CSS3 (Glassmorphism), JavaScript (ES6+), Bootstrap 5
-* **Database:** MS Access / MySQL (Normalized to 3NF)
-* **Design:** Plus Jakarta Sans Typography, Bi-Icon Library
+* **Icons & Fonts:** Bootstrap Icons, Google Fonts (Plus Jakarta Sans)
+* **Storage:** Django Media Framework (Profile Pictures)
 
 ## 🚀 Setup Instructions
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/yourusername/arcangelesite.git](https://github.com/yourusername/arcangelesite.git)
-Install dependencies:
+   git clone [https://github.com/Dodzminic/arcangelessite.git](https://github.com/Dodzminic/arcangelessite.git)
+Install requirements:
 
 Bash
 pip install django pillow
-Apply migrations:
+Database Setup:
 
 Bash
 python manage.py makemigrations
 python manage.py migrate
-Run the development server:
+Launch Application:
 
 Bash
 python manage.py runserver
-📐 Project Structure
-crud/: Main application logic.
+📐 Project Folder Structure
+crud/: Core application logic, views, and forms.
 
-media/: Managed student profile uploads.
+media/: Managed storage for student profile uploads.
 
-static/: High-end CSS and UI assets.
+templates/: Premium UI components and directory layout.
 
-Developed by Desriel Dominic Arcangeles Second Year BSIT Student | Graphic Designer | IT Enthusiast
+Developed by Desriel Dominic Arcangeles BSIT Student @ Filamer Christian University | Graphic Designer | IT Enthusiast
