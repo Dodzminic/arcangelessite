@@ -2,194 +2,848 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>FILVAULT | Sovereign Terminal</title>
+    <title>GLI Construction Services | Database</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        :root { --bg: #f8fafc; --white: #ffffff; --blue: #0062ff; --text: #1e293b; --shadow: 0 20px 50px rgba(0, 98, 255, 0.08); }
-        body { background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); }
-        .aura-card { background: var(--white); border: 1px solid rgba(0, 98, 255, 0.05); border-radius: 24px; box-shadow: var(--shadow); padding: 25px; transition: 0.3s; }
-        .brand-logo { font-weight: 800; font-size: 32px; letter-spacing: -1.5px; }
+        :root { 
+            --bg: #f8fafc; 
+            --card: #ffffff; 
+            --blue: #0062ff; 
+            --text: #1e293b; 
+            --shadow: 0 20px 50px rgba(0, 98, 255, 0.08); 
+            --border: rgba(0, 98, 255, 0.05); 
+            --sidebar-width: 280px;
+        }
+        [data-theme="dark"] { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --border: rgba(255, 255, 255, 0.1); }
+        
+        body { background-color: var(--bg); font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); transition: 0.3s; margin: 0; min-height: 100vh; overflow-x: hidden; }
+        
+        /* --- COLLAPSIBLE SIDEBAR CONFIGURATION --- */
+        .gli-sidebar {
+            width: var(--sidebar-width);
+            background: #0f172a;
+            color: #ffffff;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: fixed;
+            height: 100vh;
+            left: calc(-1 * var(--sidebar-width));
+            top: 0;
+            z-index: 1050;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.3s ease;
+        }
+        .gli-sidebar.active {
+            transform: translateX(var(--sidebar-width));
+        }
+        
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.4);
+            z-index: 1040;
+            display: none;
+            backdrop-filter: blur(4px);
+        }
+        .sidebar-overlay.active { display: block; }
+
+        .main-content-layout { width: 100%; padding: 24px; transition: 0.3s; }
+        
+        .sidebar-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #94a3b8;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.2s;
+            font-size: 14px;
+        }
+        .sidebar-menu-item:hover, .sidebar-menu-item.active {
+            background: rgba(0, 98, 255, 0.15);
+            color: #ffffff;
+        }
+        
+        /* --- DYNAMIC BADGE COLORS --- */
+        .badge-office-hq {
+            background-color: #1e293b !important;
+            color: #f1f5f9 !important;
+            border: 1px solid rgba(255,255,255,0.1);
+            font-weight: 700;
+        }
+        .badge-field-site {
+            background-color: #f97316 !important;
+            color: #ffffff !important;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+        }
+
+        /* LIVE STATUS TRACKER CIRCLES */
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 10px currentcolor;
+        }
+        .status-online { color: #10b981; background-color: #10b981; }
+        .status-offline { color: #94a3b8; background-color: #cbd5e1; box-shadow: none; }
+
+        .aura-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; box-shadow: var(--shadow); padding: 25px; transition: 0.3s; }
+        .brand-logo { font-weight: 800; font-size: 40px; letter-spacing: -1.5px; line-height: 1; position: relative; overflow: hidden; display: inline-block; }
         .brand-logo span { color: var(--blue); }
-        .cyber-input { background: #f1f5f9; border: 2px solid transparent; border-radius: 15px; padding: 15px 20px; width: 100%; outline: none; transition: 0.3s; }
-        .cyber-input:focus { border-color: var(--blue); background: white; }
-        .btn-sync { background: var(--blue); color: white; border-radius: 15px; font-weight: 700; padding: 12px 30px; border: none; box-shadow: 0 10px 25px rgba(0, 98, 255, 0.2); }
+        .brand-logo::before { content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.6), transparent); transform: skewX(-25deg); animation: shimmer 4s infinite; }
+        @keyframes shimmer { 0% { left: -100%; } 20% { left: 150%; } 100% { left: 150%; } }
+        .cyber-subtitle { font-size: 10px; font-weight: 800; letter-spacing: 3px; color: #94a3b8; text-transform: uppercase; margin-top: 5px; animation: pulse 3s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        .cyber-input { background: rgba(0,0,0,0.05); border: 2px solid transparent; border-radius: 15px; padding: 15px 20px; width: 100%; outline: none; color: inherit; transition: 0.3s; }
+        .cyber-input:focus { border-color: var(--blue); background: var(--card); }
+        #userTableBody tr { transition: 0.2s; }
+        #userTableBody tr:hover { background: rgba(0, 98, 255, 0.03); box-shadow: inset 4px 0 0 var(--blue); }
+        .btn-sync { background: var(--blue); color: white; border-radius: 15px; font-weight: 700; padding: 12px 30px; border: none; box-shadow: 0 10px 25px rgba(0, 98, 255, 0.2); transition: 0.3s; }
+        .btn-sync:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0, 98, 255, 0.3); }
         .bulk-bar { background: #1e293b; color: white; border-radius: 20px; padding: 15px 30px; display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
         .live-warn { font-size: 10px; font-weight: 800; color: #ff4757; display: none; text-transform: uppercase; margin-top: 5px; }
+        .pfp-preview { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #f1f5f9; margin: 0 auto 15px; display: block; }
         .pointer { cursor: pointer; }
+        .pagination .page-link { border: none; color: var(--text); font-weight: 700; border-radius: 10px; margin: 0 3px; background: transparent; }
+        .pagination .active .page-link { background: var(--blue); color: white; }
+        .log-item { font-size: 10px; padding: 6px 10px; border-left: 2px solid var(--blue); background: rgba(0,98,255,0.03); margin-bottom: 5px; border-radius: 0 8px 8px 0; line-height: 1.3; }
+
+        .swal2-container { z-index: 2100 !important; }
     </style>
 </head>
-<body class="p-4">
+<body>
 
-<div class="container-fluid">
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebarView(false)"></div>
+
+<div class="gli-sidebar" id="gliSidebar">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <div class="brand-logo" style="font-size: 24px; color: white;">GLI<span>Const.</span></div>
+            <div class="cyber-subtitle" style="font-size: 8px;">> System Tools</div>
+        </div>
+        <i class="bi bi-x-lg pointer text-muted fs-5" onclick="toggleSidebarView(false)"></i>
+    </div>
+    <hr style="border-color: rgba(255,255,255,0.1); margin: 0;">
+    <div class="d-flex flex-column gap-1">
+        <a href="?clear=1" class="sidebar-menu-item active"><i class="bi bi-people-fill"></i> Workers Registry</a>
+        <a href="#" class="sidebar-menu-item" data-bs-toggle="modal" data-bs-target="#archiveVaultModal" onclick="toggleSidebarView(false)"><i class="bi bi-archive-fill"></i> Open Archive Vault</a>
+        
+        <hr style="border-color: rgba(255,255,255,0.05); margin: 8px 0;">
+        
+        <a href="#" class="sidebar-menu-item" data-bs-toggle="modal" data-bs-target="#genderRegistryModal" onclick="toggleSidebarView(false)"><i class="bi bi-gender-ambiguous"></i> Gender Configurations</a>
+        <a href="#" class="sidebar-menu-item" data-bs-toggle="modal" data-bs-target="#assignmentRegistryModal" onclick="toggleSidebarView(false)"><i class="bi bi-geo-alt-fill"></i> Assignments Manager</a>
+        <a href="#" class="sidebar-menu-item" data-bs-toggle="modal" data-bs-target="#roleRegistryModal" onclick="toggleSidebarView(false)"><i class="bi bi-briefcase-fill"></i> Roles Manager</a>
+        <a href="#" class="sidebar-menu-item" onclick="toggleTheme(); toggleSidebarView(false);"><i class="bi bi-moon-stars"></i> Toggle Theme</a>
+    </div>
+    <div class="mt-auto">
+        <button type="button" onclick="confirmSecureSignout()" class="btn btn-outline-danger w-100 rounded-4 fw-bold p-3 small"><i class="bi bi-box-arrow-left me-2"></i>SIGN OUT</button>
+    </div>
+</div>
+
+<div class="main-content-layout">
     <div class="row g-4 mb-4">
         <div class="col-md-8">
             <div class="aura-card d-flex justify-content-between align-items-center">
-                <div class="brand-logo">FIL<span>VAULT</span></div>
-                <div class="d-flex gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-light rounded-4 p-3 d-flex align-items-center justify-content-center" style="background: rgba(0,98,255,0.06); border: none;" onclick="toggleSidebarView(true)">
+                        <i class="bi bi-list fs-3 text-primary"></i>
+                    </button>
+                    <div>
+                        <div class="brand-logo">GLI<span>Const.</span></div>
+                        <div class="cyber-subtitle">> Construction Services & Database System.</div>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 align-items-center">
                     <button class="btn btn-outline-dark rounded-pill px-4 fw-bold" onclick="location.href='{% url 'export_users' %}'">EXPORT CSV</button>
-                    <button class="btn-sync" data-bs-toggle="modal" data-bs-target="#addModal">REGISTER IDENTITY</button>
+                    <button class="btn-sync" data-bs-toggle="modal" data-bs-target="#addModal">REGISTER EMPLOYEE</button>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="aura-card d-flex justify-content-around text-center">
-                <div><div class="small fw-bold opacity-50">TOTAL</div><div class="h3 fw-800 m-0">{{ total }}</div></div>
+                <div><div class="small fw-bold opacity-50">TOTAL STAFF</div><div class="h3 fw-800 m-0">{{ total }}</div></div>
                 <div class="text-primary"><div>MALE</div><div class="h3 fw-800 m-0">{{ m_count }}</div></div>
                 <div class="text-danger"><div>FEMALE</div><div class="h3 fw-800 m-0">{{ f_count }}</div></div>
             </div>
         </div>
     </div>
 
+    {% if messages %}
+        {% for message in messages %}
+            <script>
+                Swal.fire({
+                    title: "{% if 'DENIED' in message.message or 'DENIED' in message.text %}OPERATION BLOCKED{% else %}SUCCESS{% endif %}",
+                    text: "{{ message }}",
+                    icon: "{% if message.tags == 'error' or 'DENIED' in message.message or 'DENIED' in message.text %}error{% else %}success{% endif %}"
+                });
+            </script>
+        {% endfor %}
+    {% endif %}
+
     <div class="row g-4">
         <div class="col-md-3">
-            <div class="aura-card mb-4">
-                <h6 class="fw-800 small text-uppercase text-primary mb-3">Categories</h6>
-                <form method="POST" class="mb-3"> {% csrf_token %}
-                    <div class="input-group">
-                        <input type="text" name="gender_name" class="form-control rounded-start-4 border-0 bg-light" placeholder="New..." required>
-                        <button type="submit" name="add_gender" class="btn btn-primary rounded-end-4"><i class="bi bi-plus"></i></button>
+            <div class="aura-card p-3 mb-3">
+                <h6 class="fw-800 small text-uppercase text-primary mb-2" style="font-size: 11px;">System Logs</h6>
+                <div class="log-tray-wrapper" style="max-height: 220px; overflow-y: auto; padding-right: 2px;">
+                    {% for log in recent_logs %}
+                    <div class="log-item">
+                        <div class="fw-bold text-truncate" style="color: var(--text)">{{ log.action }}</div>
+                        <div class="opacity-50" style="font-size: 8px;">{{ log.timestamp|timesince }} ago</div>
                     </div>
-                </form>
-                {% for g in genders %}
-                <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-light rounded-3">
-                    <span class="small fw-bold">{{ g.gender }}</span>
-                    <div>
-                        <i class="bi bi-pencil-square text-primary pointer me-2" onclick="editCat('{{ g.id }}', '{{ g.gender }}')"></i>
-                        <form method="POST" class="d-inline"> {% csrf_token %} <input type="hidden" name="gender_id" value="{{ g.id }}"> <button type="submit" name="delete_gender" class="btn p-0 border-0 text-danger"><i class="bi bi-x-circle"></i></button></form>
-                    </div>
+                    {% empty %}
+                    <div class="small opacity-50 text-center py-2">No recent activity detected.</div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-                <a href="?filter=archived" class="btn btn-dark w-100 rounded-pill mt-3 fw-bold">OPEN ARCHIVE</a>
+            </div>
+
+            <div class="aura-card p-3 bg-light border-0">
+                <h6 class="fw-800 small text-uppercase text-muted mb-3" style="font-size: 11px; letter-spacing: 1px;">Deployment Analytics</h6>
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small fw-600 text-secondary"><i class="bi bi-building me-2"></i>Office HQ Allocation</span>
+                        <span class="badge bg-dark px-2.5 py-1.5 fw-bold">{{ office_count }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small fw-600 text-secondary"><i class="bi bi-cone-striped me-2"></i>Active Project Fields</span>
+                        <span class="badge bg-warning text-dark px-2.5 py-1.5 fw-bold">{{ field_count }}</span>
+                    </div>
+                    <hr class="my-1 opacity-5">
+                    <div class="small text-muted text-center" style="font-size: 10px; font-style: italic;">System parameters fully balanced.</div>
+                </div>
             </div>
         </div>
 
         <div class="col-md-9">
             <div class="aura-card">
-                <form method="GET" id="searchForm" class="mb-4">
-                    <input type="text" name="q" value="{{ query }}" id="searchInput" class="cyber-input" placeholder="Live scan Global Vault...">
-                    {% if is_archived_view %}<input type="hidden" name="filter" value="archived">{% endif %}
-                </form>
-                <table class="table align-middle">
-                    <thead class="small opacity-50 fw-800">
-                        <tr><th width="40"><input type="checkbox" id="selectAll"></th><th>IDENTITY</th><th>EMAIL</th><th>CAT</th><th class="text-end">ACTION</th></tr>
-                    </thead>
-                    <tbody>
-                        {% for u in users %}
-                        <tr>
-                            <td><input type="checkbox" name="selected_users" value="{{ u.id }}" class="user-checkbox" form="bulkForm"></td>
-                            <td class="fw-800 py-3">{{ u.username }}</td>
-                            <td class="small fw-bold text-muted">{{ u.email }}</td>
-                            <td><span class="badge rounded-pill bg-light text-primary px-3 py-2 border">{{ u.gender.gender|upper }}</span></td>
-                            <td class="text-end">
-                                {% if is_archived_view %}
-                                    <a href="{% url 'recover_user' u.id %}" class="btn btn-sm btn-success rounded-pill px-3">Restore</a>
-                                    <a href="javascript:void(0)" onclick="confirmDelete('{% url 'permanent_purge' u.id %}', 'PURGE FOREVER?')" class="btn btn-sm btn-danger rounded-pill px-3">Purge</a>
-                                {% else %}
-                                    <i class="bi bi-gear-fill me-3 text-primary pointer" onclick="openEdit('{{ u.id }}', '{{ u.username }}', '{{ u.email }}', '{{ u.gender.id }}')"></i>
-                                    <a href="javascript:void(0)" onclick="confirmDelete('{% url 'delete_user' u.id %}', 'Archive {{ u.username }}?')" class="text-danger"><i class="bi bi-trash3-fill"></i></a>
-                                {% endif %}
-                            </td>
-                        </tr>
+                <div class="d-flex flex-wrap gap-2 mb-4 align-items-center">
+                    <div class="position-relative flex-grow-1">
+                        <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 opacity-50"></i>
+                        <input type="text" id="searchInput" class="cyber-input ps-5" placeholder="Search For Employee, ID, Email..." value="{{ query }}" onkeyup="triggerLiveSearchAsync()">
+                    </div>
+                    
+                    <select id="sortSelect" class="cyber-input w-auto px-3 fw-bold text-primary" style="font-size: 13px;" onchange="executeSearch()">
+                        <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>NEWEST</option>
+                        <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>OLDEST</option>
+                        <option value="az" {% if current_sort == 'az' %}selected{% endif %}>A - Z</option>
+                        <option value="za" {% if current_sort == 'za' %}selected{% endif %}>Z - A</option>
+                    </select>
+
+                    <select id="assignmentSelect" class="cyber-input w-auto px-3 fw-bold text-primary" style="font-size: 13px;" onchange="executeSearch()">
+                        <option value="">ALL WORK ASSIGNMENTS</option>
+                        {% for a in assignments %}
+                            <option value="{{ a.id }}" {% if current_assignment == a.id|stringformat:"i" %}selected{% endif %}>{{ a.name|upper }}</option>
                         {% endfor %}
+                    </select>
+
+                    <select id="roleSelect" class="cyber-input w-auto px-3 fw-bold text-primary" style="font-size: 13px;" onchange="executeSearch()">
+                        <option value="">ALL METRIC ROLES</option>
+                        {% for r in roles %}
+                            <option value="{{ r.id }}" {% if current_role == r.id|stringformat:"i" %}selected{% endif %}>{{ r.name|upper }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <table class="table align-middle" id="mainTable">
+                    <thead class="small opacity-50 fw-800">
+                        <tr>
+                            <th width="40"><input type="checkbox" id="selectAll"></th>
+                            <th>EMPLOYEE DETAILS</th>
+                            <th>EMAIL & ADDRESS</th>
+                            <th>ASSIGNMENT</th>
+                            <th>GENDER & AGE</th>
+                            <th class="text-end">ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        {% include 'user_table_partial.html' %}
                     </tbody>
                 </table>
+
+                <nav class="mt-4" id="pagination-container">
+                    <ul class="pagination justify-content-center">
+                        {% if users.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page={{ users.previous_page_number }}{% if query %}&q={{ query }}{% endif %}&sort={{ current_sort }}&assignment={{ current_assignment }}&role={{ current_role }}"><i class="bi bi-chevron-left"></i></a></li>
+                        {% endif %}
+                        {% for num in users.paginator.page_range %}
+                            <li class="page-item {% if users.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}&sort={{ current_sort }}&assignment={{ current_assignment }}&role={{ current_role }}">{{ num }}</a>
+                            </li>
+                        {% endfor %}
+                        {% if users.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ users.next_page_number }}{% if query %}&q={{ query }}{% endif %}&sort={{ current_sort }}&assignment={{ current_assignment }}&role={{ current_role }}"><i class="bi bi-chevron-right"></i></a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
             </div>
         </div>
     </div>
 </div>
 
+<div class="modal fade" id="archiveVaultModal" tabindex="-1" data-bs-focus="false" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered modal-xl"><div class="modal-content aura-card p-5 border-0" style="max-height: 85vh; overflow-y: auto;">
+    <form method="POST" action="{% url 'user_list' %}"> {% csrf_token %}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-800 m-0 text-danger"><i class="bi bi-archive-fill me-2"></i>ARCHIVED DOSSIERS VAULT</h4>
+                <div class="small text-muted">Isolated personnel files awaiting data restoration or structural ledger purge choices.</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        
+        <div class="d-flex gap-3 align-items-center mb-3 p-3 rounded-4 bg-light border-0" id="archiveBulkToolbar" style="display: none !important;">
+            <span class="small fw-800 text-dark"><span id="archiveSelCount">0</span> SELECTED RECORDS</span>
+            <select name="action_type" id="archiveBulkActionSelect" class="cyber-input w-auto py-1 px-3 bg-dark text-white border-0" style="font-size:12px; border-radius:8px;">
+                <option value="recover">Restore Selected</option>
+                <option value="purge">Purge Selected Permanently</option>
+            </select>
+            <button type="button" onclick="confirmArchiveBulkAction()" name="bulk_action" class="btn btn-primary btn-sm rounded-pill px-4 fw-800">EXECUTE BULK ACTION</button>
+        </div>
+
+        <table class="table align-middle">
+            <thead class="small opacity-50 fw-800">
+                <tr>
+                    <th width="40"><input type="checkbox" id="archiveSelectAll" onchange="toggleArchiveSelectAllRows(this)"></th>
+                    <th>EMPLOYEE</th>
+                    <th>CONTACT DETAILS</th>
+                    <th>LAST ASSIGNMENT</th>
+                    <th class="text-end">RESTORE / PURGE OPERATION</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for au in archived_users %}
+                <tr>
+                    <td><input type="checkbox" class="archive-user-checkbox" name="selected_users" value="{{ au.id }}" onchange="updateArchiveBulkCounter()"></td>
+                    <td class="fw-bold">
+                        <div class="d-flex align-items-center gap-3">
+                            {% if au.profile_pic %}
+                                <img src="{{ au.profile_pic.url }}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                            {% else %}
+                                <img src="https://ui-avatars.com/api/?name={{ au.employee_name|urlencode }}&background=64748b&color=fff&bold=true" style="width: 36px; height: 36px; border-radius: 50%;">
+                            {% endif %}
+                            <div>
+                                {{ au.employee_name }}
+                                <small class="text-muted d-block" style="font-weight: 400; font-size: 11px;">ID: {{ au.username }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td><div class="small fw-bold">{{ au.email }}</div><div class="small opacity-50">{{ au.address }}</div></td>
+                    <td><span class="badge bg-secondary">{{ au.assignment_rel.name }}</span></td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-success rounded-pill px-3 me-2" onclick="confirmAction('{% url 'recover_user' au.id %}', 'RESTORE EMPLOYEE FILES TO ACTIVE REGISTER MATRIX?')">Restore Profile</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="confirmAction('{% url 'permanent_purge' au.id %}', 'PERMANENTLY PURGE EMPLOYEE RECORD?')">Purge Forever</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center py-4 opacity-40">Archive vault is empty. No isolated files found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
+</div></div></div>
+
+<div class="modal fade" id="genderRegistryModal" tabindex="-1" data-bs-backdrop="static" data-bs-focus="false"><div class="modal-dialog modal-dialog-centered"><div class="modal-content aura-card p-4 border-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-800 m-0 text-primary">GENDER REGISTER CONTROLS</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <form method="POST" class="mb-3" id="modalAddGenderForm"> {% csrf_token %}
+        <div class="input-group">
+            <input type="text" name="gender_name" class="form-control rounded-start-4 border-0 bg-light p-3" placeholder="Add custom gender option..." required>
+            <button type="submit" name="add_gender" class="btn btn-primary rounded-end-4 px-3"><i class="bi bi-plus-lg"></i></button>
+        </div>
+    </form>
+    <div style="max-height: 240px; overflow-y: auto;">
+        {% for g in genders %}
+        <div class="d-flex justify-content-between align-items-center p-2 px-3 mb-2 bg-light rounded-4">
+            <span class="small fw-bold text-dark">{{ g.gender }}</span>
+            <div class="d-flex gap-2">
+                <i class="bi bi-pencil-square text-primary pointer" onclick="editCat('{{ g.id }}', '{{ g.gender }}', 'gender')"></i>
+                <form method="POST" class="d-inline" id="modalDelGen{{g.id}}"> {% csrf_token %} 
+                    <input type="hidden" name="gender_id" value="{{ g.id }}"> 
+                    <input type="hidden" name="delete_gender" value="1">
+                    <button type="button" onclick="confirmPurgeComponent('modalDelGen{{g.id}}')" class="btn p-0 border-0 text-danger"><i class="bi bi-x-circle"></i></button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div></div></div>
+
+<div class="modal fade" id="assignmentRegistryModal" tabindex="-1" data-bs-backdrop="static" data-bs-focus="false"><div class="modal-dialog modal-dialog-centered"><div class="modal-content aura-card p-4 border-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-800 m-0 text-primary">ASSIGNMENTS MANAGER</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <form method="POST" class="mb-3"> {% csrf_token %}
+        <div class="input-group">
+            <input type="text" name="assignment_name" class="form-control rounded-start-4 border-0 bg-light p-3" placeholder="e.g. Main Office HQ..." required>
+            <button type="submit" name="add_assignment" class="btn btn-primary rounded-end-4 px-3"><i class="bi bi-plus-lg"></i></button>
+        </div>
+    </form>
+    <div style="max-height: 240px; overflow-y: auto;">
+        {% for a in assignments %}
+        <div class="d-flex justify-content-between align-items-center p-2 px-3 mb-2 bg-light rounded-4">
+            <span class="small fw-bold text-dark">{{ a.name }}</span>
+            <div class="d-flex gap-2">
+                <i class="bi bi-pencil-square text-primary pointer" onclick="editCat('{{ a.id }}', '{{ a.name }}', 'assignment')"></i>
+                <form method="POST" class="d-inline" id="modalDelAsg{{a.id}}"> {% csrf_token %} 
+                    <input type="hidden" name="assignment_id" value="{{ a.id }}"> 
+                    <input type="hidden" name="delete_assignment" value="1">
+                    <button type="button" onclick="confirmPurgeComponent('modalDelAsg{{a.id}}')" class="btn p-0 border-0 text-danger"><i class="bi bi-x-circle"></i></button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div></div></div>
+
+<div class="modal fade" id="roleRegistryModal" tabindex="-1" data-bs-backdrop="static" data-bs-focus="false"><div class="modal-dialog modal-dialog-centered"><div class="modal-content aura-card p-4 border-0">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-800 m-0 text-primary">ROLES MANAGER</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <form method="POST" class="mb-3"> {% csrf_token %}
+        <div class="input-group">
+            <input type="text" name="role_name" class="form-control rounded-start-4 border-0 bg-light p-3" placeholder="e.g. Project Manager..." required>
+            <button type="submit" name="add_role" class="btn btn-primary rounded-end-4 px-3"><i class="bi bi-plus-lg"></i></button>
+        </div>
+    </form>
+    <div style="max-height: 240px; overflow-y: auto;">
+        {% for r in roles %}
+        <div class="d-flex justify-content-between align-items-center p-2 px-3 mb-2 bg-light rounded-4">
+            <span class="small fw-bold text-dark">{{ r.name }}</span>
+            <div class="d-flex gap-2">
+                <i class="bi bi-pencil-square text-primary pointer" onclick="editCat('{{ r.id }}', '{{ r.name }}', 'role')"></i>
+                <form method="POST" class="d-inline" id="modalDelRol{{r.id}}"> {% csrf_token %} 
+                    <input type="hidden" name="role_id" value="{{ r.id }}"> 
+                    <input type="hidden" name="delete_role" value="1">
+                    <button type="button" onclick="confirmPurgeComponent('modalDelRol{{r.id}}')" class="btn p-0 border-0 text-danger"><i class="bi bi-x-circle"></i></button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div></div></div>
+
+<div class="modal fade" id="addModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content aura-card p-5 border-0">
+    <h4 class="fw-800 text-center mb-4">ENROLL EMPLOYEE RECORD</h4>
+    <form method="POST" enctype="multipart/form-data" id="addIdentityForm"> {% csrf_token %}
+        <div class="text-center mb-3">
+            <img id="add-pfp-preview" src="https://ui-avatars.com/api/?name=New+Employee&background=0062ff&color=fff&bold=true" class="pfp-preview">
+            <label class="btn btn-sm btn-light border rounded-pill px-3 pointer">
+                <i class="bi bi-camera me-1"></i> Upload Profile Pic
+                <input type="file" name="profile_pic" class="d-none" onchange="previewImage(this, 'add-pfp-preview')">
+            </label>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="small fw-bold opacity-70">Employee ID / Username</label>
+                <input type="text" id="u-add" name="username" class="cyber-input" value="{{ next_id_generation }}" readonly style="background: rgba(0,0,0,0.02); border-bottom: 2px dashed var(--blue); font-weight: 700;">
+                <div id="u-warn" class="live-warn">ID Already Registered</div>
+            </div>
+            <div class="col-md-6">
+                <label class="small fw-bold opacity-70">Full Name</label>
+                <input type="text" name="employee_name" class="cyber-input" placeholder="First and Last name" required>
+            </div>
+            <div class="col-md-4">
+                <label class="small fw-bold opacity-70">Age</label>
+                <input type="number" name="age" class="cyber-input" min="18" max="70" value="25" required>
+            </div>
+            <div class="col-md-4">
+                <label class="small fw-bold opacity-70">Gender</label>
+                <select name="gender" class="cyber-input" required>{% for g in genders %}<option value="{{ g.id }}">{{ g.gender }}</option>{% endfor %}</select>
+            </div>
+            <div class="col-md-4">
+                <label class="small fw-bold opacity-70">Email Address</label>
+                <input type="email" id="e-add" name="email" class="cyber-input" placeholder="name@gliconstruction.com" required onkeyup="validateEmail(this)">
+                <div id="e-warn" class="live-warn">Email Linked</div>
+            </div>
+            <div class="col-md-6">
+                <label class="small fw-bold opacity-70">Office or Field Assignment</label>
+                <select name="office_or_field" class="cyber-input" required>
+                    {% for a in assignments %}<option value="{{ a.id }}">{{ a.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="small fw-bold opacity-70">Designated Role</label>
+                <select name="role" class="cyber-input" required>
+                    {% for r in roles %}<option value="{{ r.id }}">{{ r.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-12">
+                <label class="small fw-bold opacity-70">Home Address</label>
+                <textarea name="address" class="cyber-input" rows="2" placeholder="Complete address" required></textarea>
+            </div>
+        </div>
+        <hr class="my-4 opacity-10">
+        <div class="row g-3">
+            <div class="col-md-6 position-relative">
+                <input type="password" id="p1" name="password" class="cyber-input" placeholder="Password Access" required>
+                <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-3 mt-1 pointer text-primary" onclick="togglePass('p1', this)"></i>
+            </div>
+            <div class="col-md-6 position-relative">
+                <input type="password" id="p2" class="cyber-input" placeholder="Confirm Password" required>
+                <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-3 mt-1 pointer text-primary" onclick="togglePass('p2', this)"></i>
+            </div>
+        </div>
+        <div id="p-warn" class="live-warn text-center">Passwords Mismatch</div>
+        <button type="submit" name="add_user" id="sub-btn" class="btn-sync w-100 py-3 mt-4">COMMIT RECORD TO VAULT</button>
+    </form>
+</div></div></div>
+
+<div class="modal fade" id="editModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content aura-card p-5 border-0">
+    <h4 class="fw-800 text-center mb-4 text-primary">MODIFY EMPLOYEE DOSSIER</h4>
+    <form method="POST" enctype="multipart/form-data" id="editIdentityForm"> {% csrf_token %}
+        <input type="hidden" id="edit_id" name="user_id">
+        <div class="text-center mb-3">
+            <img id="edit-pfp-preview" src="" class="pfp-preview">
+            <label class="btn btn-sm btn-light border rounded-pill px-3 pointer mt-2">
+                <i class="bi bi-camera me-1"></i> Change Profile Pic
+                <input type="file" name="profile_pic" class="d-none" onchange="previewImage(this, 'edit-pfp-preview')">
+            </label>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="small fw-bold opacity-70">Employee ID / Display Username</label>
+                <input type="text" id="edit_username" name="username" class="cyber-input" required readonly style="background: rgba(0,0,0,0.01);">
+                <div id="u-edit-warn" class="live-warn">ID Taken</div>
+            </div>
+            <div class="col-md-6">
+                <label class="small fw-bold opacity-70">Full Name</label>
+                <input type="text" id="edit_employee_name" name="employee_name" class="cyber-input" required>
+            </div>
+            <div class="col-md-4">
+                <label class="small fw-bold opacity-70">Age</label>
+                <input type="number" id="edit_age" name="age" class="cyber-input" required>
+            </div>
+            <div class="col-md-4">
+                <label class="small fw-bold opacity-70">Gender</label>
+                <select id="edit_gender" name="gender" class="cyber-input">{% for g in genders %}<option value="{{ g.id }}">{{ g.gender }}</option>{% endfor %}</select>
+            </div>
+            <div class="col-md-4">
+                <label class="small fw-bold opacity-70">Email Address</label>
+                <input type="email" id="edit_email" name="email" class="cyber-input" required onkeyup="validateEmail(this)">
+                <div id="e-edit-warn" class="live-warn">Email Linked</div>
+            </div>
+            <div class="col-md-6">
+                <label class="small fw-bold opacity-70">Office or Field Assignment</label>
+                <select id="edit_office_or_field" name="office_or_field" class="cyber-input">
+                    {% for a in assignments %}<option value="{{ a.id }}">{{ a.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="small fw-bold opacity-70">Designated Role</label>
+                <select id="edit_role" name="role" class="cyber-input">
+                    {% for r in roles %}<option value="{{ r.id }}">{{ r.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-12">
+                <label class="small fw-bold opacity-70">Home Address</label>
+                <textarea id="edit_address" name="address" class="cyber-input" rows="2" required></textarea>
+            </div>
+        </div>
+        <hr class="opacity-10 my-4"><p class="small fw-bold opacity-50 mb-2">SECURITY OVERRIDE (Optional)</p>
+        <div class="row g-3">
+            <div class="col-md-6 position-relative">
+                <input type="password" id="edit_p1" name="password" class="cyber-input" placeholder="New Password Override">
+                <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-3 pointer text-primary" onclick="togglePass('edit_p1', this)"></i>
+            </div>
+            <div class="col-md-6 position-relative">
+                <input type="password" id="edit_p2" class="cyber-input" placeholder="Confirm Password Override">
+                <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-3 pointer text-primary" onclick="togglePass('edit_p2', this)"></i>
+            </div>
+        </div>
+        <div id="edit-p-warn" class="live-warn text-center">Passwords Mismatch</div>
+        <button type="submit" name="edit_user" id="edit-sub-btn" class="btn-sync w-100 py-3 mt-4">UPDATE VAULT FILES</button>
+    </form>
+</div></div></div>
+
 <div id="bulkBar" class="bulk-bar">
     <form method="POST" id="bulkForm" class="d-flex align-items-center gap-4"> {% csrf_token %}
         <span class="small fw-800"><span id="selCount">0</span> SELECTED</span>
-        <select name="action_type" class="cyber-input w-auto py-1 px-3 bg-dark text-white border-0">
-            {% if is_archived_view %}<option value="recover">Restore</option><option value="purge">Purge Forever</option>
-            {% else %}<option value="archive">Archive</option>{% endif %}
+        <select name="action_type" id="bulkActionType" class="cyber-input w-auto py-1 px-3 bg-dark text-white border-0">
+            <option value="archive">Archive</option>
         </select>
-        <button type="submit" name="bulk_action" class="btn btn-primary btn-sm rounded-pill px-4 fw-800">EXECUTE</button>
+        <button type="button" onclick="confirmBulkAction()" name="bulk_action" class="btn btn-primary btn-sm rounded-pill px-4 fw-800">EXECUTE</button>
         <i class="bi bi-x-circle pointer" onclick="cancelBulk()"></i>
     </form>
 </div>
 
-<!-- ADD MODAL -->
-<div class="modal fade" id="addModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content aura-card p-5 border-0">
-    <h4 class="fw-800 text-center mb-4">ENROLL IDENTITY</h4>
-    <form method="POST" enctype="multipart/form-data"> {% csrf_token %}
-        <input type="text" id="u-add" name="username" class="cyber-input mb-1" placeholder="Username" required>
-        <div id="u-warn" class="live-warn">Username Taken</div>
-        
-        <input type="email" id="e-add" name="email" class="cyber-input mt-3 mb-1" placeholder="Email Source" required>
-        <div id="e-warn" class="live-warn">Email Linked</div>
-
-        <select name="gender" class="cyber-input mt-3 mb-3" required>{% for g in genders %}<option value="{{ g.id }}">{{ g.gender }}</option>{% endfor %}</select>
-        
-        <input type="password" id="p1" name="password" class="cyber-input mb-3" placeholder="Password" required>
-        <input type="password" id="p2" class="cyber-input mb-1" placeholder="Confirm Password" required>
-        <div id="p-warn" class="live-warn">Passwords Mismatch</div>
-
-        <button type="submit" name="add_user" id="sub-btn" class="btn-sync w-100 py-3 mt-4">SYNC TO VAULT</button>
-    </form>
-</div></div></div>
-
-<!-- EDIT MODAL -->
-<div class="modal fade" id="editModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content aura-card p-5 border-0">
-    <h4 class="fw-800 text-center mb-4 text-primary">MODIFY IDENTITY</h4>
-    <form method="POST" enctype="multipart/form-data"> {% csrf_token %}
-        <input type="hidden" id="edit_id" name="user_id">
-        <input type="text" id="edit_name" name="username" class="cyber-input mb-3" required>
-        <input type="email" id="edit_email" name="email" class="cyber-input mb-3" required>
-        <select id="edit_gender" name="gender" class="cyber-input mb-4">{% for g in genders %}<option value="{{ g.id }}">{{ g.gender }}</option>{% endfor %}</select>
-        <button type="submit" name="edit_user" class="btn-sync w-100 py-3">UPDATE VAULT</button>
-    </form>
-</div></div></div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // LIVE CHECKERS
-    const uI = document.getElementById('u-add'), eI = document.getElementById('e-add'), sub = document.getElementById('sub-btn'),
-          p1 = document.getElementById('p1'), p2 = document.getElementById('p2'), pW = document.getElementById('p-warn');
-    
-    uI.onkeyup = () => { fetch(`/check-username/?username=${uI.value}`).then(r => r.json()).then(d => { document.getElementById('u-warn').style.display = d.is_taken ? 'block' : 'none'; sub.disabled = d.is_taken; }); };
-    eI.onkeyup = () => { fetch(`/check-email/?email=${eI.value}`).then(r => r.json()).then(d => { document.getElementById('e-warn').style.display = d.is_taken ? 'block' : 'none'; sub.disabled = d.is_taken; }); };
-    p2.onkeyup = () => { const m = p1.value === p2.value; pW.style.display = m ? 'none' : 'block'; sub.disabled = !m; };
+    // AUTOMATED MATRIX CHECK ON REFRESH: Re-opens active dashboard modals seamlessly if redirected
+    window.addEventListener('DOMContentLoaded', () => {
+        const targetModalId = "{{ open_modal }}";
+        if(targetModalId) {
+            const el = document.getElementById(targetModalId);
+            if(el) { new bootstrap.Modal(el).show(); }
+        }
+    });
 
-    // LIVE SEARCH ENGINE
-    document.getElementById('searchInput').oninput = function() {
-        clearTimeout(window.sT);
-        window.sT = setTimeout(() => document.getElementById('searchForm').submit(), 700);
-    };
-
-    // BULK SELECTION
-    const selectAll = document.getElementById('selectAll'), cBox = document.querySelectorAll('.user-checkbox');
-    if(selectAll) selectAll.onchange = () => { cBox.forEach(c => c.checked = selectAll.checked); updateB(); };
-    cBox.forEach(c => c.onchange = updateB);
-    function updateB() { const n = document.querySelectorAll('.user-checkbox:checked').length; document.getElementById('bulkBar').style.display = n > 0 ? 'block' : 'none'; document.getElementById('selCount').innerText = n; }
-    function cancelBulk() { cBox.forEach(c => c.checked = false); updateB(); }
-
-    // MODAL & POPUPS
-    function openEdit(id, name, email, gender) {
-        document.getElementById('edit_id').value = id; document.getElementById('edit_name').value = name;
-        document.getElementById('edit_email').value = email; document.getElementById('edit_gender').value = gender;
-        new bootstrap.Modal(document.getElementById('editModal')).show();
+    function toggleSidebarView(status) {
+        const side = document.getElementById('gliSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        if(status) {
+            side.classList.add('active');
+            overlay.classList.add('active');
+        } else {
+            side.classList.remove('active');
+            overlay.classList.remove('active');
+        }
     }
-    function confirmDelete(url, msg) { Swal.fire({ title: 'AUTHORIZED ACTION?', text: msg, icon: 'warning', showCancelButton: true, confirmButtonColor: '#0062ff' }).then(r => { if(r.isConfirmed) window.location.href = url; }); }
-    
-    function editCat(id, name) {
-        Swal.fire({ title: 'Rename Category', input: 'text', inputValue: name, showCancelButton: true }).then(r => {
-            if (r.value) {
-                const f = document.createElement('form'); f.method = 'POST';
-                f.innerHTML = `{% csrf_token %}<input type="hidden" name="gender_id" value="${id}"><input type="hidden" name="gender_name" value="${r.value}"><input type="hidden" name="edit_gender">`;
-                document.body.appendChild(f); f.submit();
+
+    function toggleTheme() {
+        const b = document.body;
+        b.dataset.theme = b.dataset.theme === "dark" ? "light" : "dark";
+    }
+
+    function togglePass(id, el) {
+        const p = document.getElementById(id);
+        p.type = p.type === "password" ? "text" : "password";
+        el.classList.toggle('bi-eye'); el.classList.toggle('bi-eye-slash');
+    }
+
+    function validateEmail(input) {
+        const re = /\S+@\S+\.\S+/;
+        input.style.borderBottom = re.test(input.value) ? "2px solid var(--blue)" : "2px solid #ff4757";
+    }
+
+    function confirmSecureSignout() {
+        Swal.fire({
+            title: 'TERMINATE DATABASE SESSION?',
+            text: "Authorized access tokens will clear immediately.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ff4757',
+            confirmButtonText: 'SIGN OUT'
+        }).then((result) => { if (result.isConfirmed) window.location.href = "{% url 'logout' %}"; });
+    }
+
+    function confirmPurgeComponent(formId) {
+        Swal.fire({
+            title: 'CONFIRM DELETION PERMISSION?',
+            html: `
+                <p class="small text-muted text-center">The system engine handles constraint logic optimization prior to cleaning data columns.</p>
+                <div class="d-flex align-items-center justify-content-center gap-2 mt-3" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                    <input type="checkbox" id="delCheck" style="cursor: pointer; transform: scale(1.1);">
+                    <label for="delCheck" style="cursor: pointer; font-weight: 600; font-size: 13px; color: #1e293b; user-select: none;">I understand this runs deep database validation checks</label>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ff4757',
+            confirmButtonText: 'CONFIRM PURGE',
+            preConfirm: () => {
+                if (!document.getElementById('delCheck').checked) {
+                    Swal.showValidationMessage('Verification Blocked: You must check the validation acknowledgement field!');
+                    return false;
+                }
+            }
+        }).then((result) => { if (result.isConfirmed) document.getElementById(formId).submit(); });
+    }
+
+    function confirmAction(url, title) {
+        Swal.fire({ title: title, icon: 'warning', showCancelButton: true, confirmButtonColor: '#0062ff' })
+        .then(r => { if(r.isConfirmed) window.location.href = url; });
+    }
+
+    function confirmBulkAction() {
+        const action = document.getElementById('bulkActionType').value;
+        Swal.fire({ title: `CONFIRM BULK ${action.toUpperCase()}?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#0062ff' })
+        .then(r => { if(r.isConfirmed) {
+            const f = document.getElementById('bulkForm');
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden'; hiddenInput.name = 'bulk_action';
+            f.appendChild(hiddenInput); f.submit();
+        }});
+    }
+
+    /* --- ADDED: ARCHIVE POP-UP MODAL CONTAINER BULK SELECTION ACTIONS CONTROL MATRIX --- */
+    function toggleArchiveSelectAllRows(masterCheckbox) {
+        document.querySelectorAll('.archive-user-checkbox').forEach(cb => cb.checked = masterCheckbox.checked);
+        updateArchiveBulkCounter();
+    }
+
+    function updateArchiveBulkCounter() {
+        const totalChecked = document.querySelectorAll('.archive-user-checkbox:checked').length;
+        const toolbar = document.getElementById('archiveBulkToolbar');
+        const counterText = document.getElementById('archiveSelCount');
+        
+        if(totalChecked > 0) {
+            toolbar.style.setAttribute('style', 'display: flex !important;');
+            counterText.innerText = totalChecked;
+        } else {
+            toolbar.setAttribute('style', 'display: none !important;');
+        }
+    }
+
+    function confirmArchiveBulkAction() {
+        const action = document.getElementById('archiveBulkActionSelect').value;
+        Swal.fire({ 
+            title: `CONFIRM ARCHIVE BULK ${action.toUpperCase()}?`, 
+            text: "This operation updates relationship states across your chosen dossiers.",
+            icon: 'warning', 
+            showCancelButton: true, 
+            confirmButtonColor: '#0062ff' 
+        }).then(r => { 
+            if(r.isConfirmed) {
+                const form = document.querySelector('#archiveVaultModal form');
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden'; actionInput.name = 'bulk_action';
+                form.appendChild(actionInput);
+                
+                // Maps modal select option parameters back into view action pipelines cleanly
+                document.getElementById('archiveBulkActionSelect').setAttribute('name', 'action_type');
+                form.submit();
             }
         });
     }
 
-    // TOAST NOTIFICATIONS
-    {% if messages %}{% for m in messages %}
-    Swal.fire({ text: "{{ m }}", icon: "{% if m.tags == 'error' %}error{% else %}success{% endif %}", toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
-    {% endfor %}{% endif %}
+    const validateField = (input, warn, url, currentBtn) => {
+        if(input.value.length > 2) {
+            const uId = document.getElementById('edit_id') ? document.getElementById('edit_id').value : "";
+            fetch(`${url}?${input.name}=${input.value}&user_id=${uId}`)
+            .then(r => r.json()).then(d => {
+                warn.style.display = d.is_taken ? 'block' : 'none';
+                currentBtn.disabled = d.is_taken;
+            });
+        }
+    };
+
+    const uI = document.getElementById('u-add'), eI = document.getElementById('e-add'), sub = document.getElementById('sub-btn');
+    if(uI) uI.onkeyup = () => validateField(uI, document.getElementById('u-warn'), '/check-username/', sub);
+    if(eI) eI.onkeyup = () => validateField(eI, document.getElementById('e-warn'), '/check-email/', sub);
+
+    const euI = document.getElementById('edit_username'), eeI = document.getElementById('edit_email'), esub = document.getElementById('edit-sub-btn');
+    if(euI) euI.onkeyup = () => validateField(euI, document.getElementById('u-edit-warn'), '/check-username/', esub);
+    if(eeI) eeI.onkeyup = () => validateField(eeI, document.getElementById('e-edit-warn'), '/check-email/', esub);
+
+    const validatePass = (p1, p2, warn, btn) => {
+        const match = p1.value === p2.value;
+        warn.style.display = (p2.value !== "" && !match) ? 'block' : 'none';
+        btn.disabled = (p2.value !== "" && !match);
+    };
+    if(document.getElementById('p2')) document.getElementById('p2').onkeyup = () => validatePass(document.getElementById('p1'), document.getElementById('p2'), document.getElementById('p-warn'), sub);
+    if(document.getElementById('edit_p2')) document.getElementById('edit_p2').onkeyup = () => validatePass(document.getElementById('edit_p1'), document.getElementById('edit_p2'), document.getElementById('edit-p-warn'), esub);
+
+    function executeSearch() {
+        const q = document.getElementById('searchInput').value;
+        const sort = document.getElementById('sortSelect').value;
+        const assignment = document.getElementById('assignmentSelect').value;
+        const role = document.getElementById('roleSelect').value;
+        window.location.href = `?q=${q}&sort=${sort}&assignment=${assignment}&role=${role}`;
+    }
+
+    function triggerLiveSearchAsync() {
+        const val = document.getElementById('searchInput').value;
+        const sort = document.getElementById('sortSelect').value;
+        const assignment = document.getElementById('assignmentSelect').value;
+        const role = document.getElementById('roleSelect').value;
+        
+        clearTimeout(window.liveSearchTimeout);
+        window.liveSearchTimeout = setTimeout(() => {
+            fetch(`?q=${encodeURIComponent(val)}&sort=${sort}&assignment=${assignment}&role=${role}`, {
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('userTableBody').innerHTML = html;
+                updateB();
+            });
+        }, 300);
+    }
+    
+    document.getElementById('selectAll').onchange = function() {
+        document.querySelectorAll('.user-checkbox').forEach(c => c.checked = this.checked); updateB();
+    };
+    function updateB() {
+        const n = document.querySelectorAll('.user-checkbox:checked').length;
+        const bulkBar = document.getElementById('bulkBar');
+        if (bulkBar) bulkBar.style.display = n > 0 ? 'block' : 'none';
+        const selCount = document.getElementById('selCount');
+        if (selCount) selCount.innerText = n;
+    }
+    function cancelBulk() { document.querySelectorAll('.user-checkbox').forEach(c => c.checked = false); updateB(); }
+
+    function previewImage(input, previewId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(previewId).src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function openEdit(id, username, empName, age, email, address, assignmentId, roleId, genderId, pfpUrl) {
+        document.getElementById('edit_id').value = id; 
+        document.getElementById('edit_username').value = username;
+        document.getElementById('edit_employee_name').value = empName;
+        document.getElementById('edit_age').value = age;
+        document.getElementById('edit_email').value = email; 
+        document.getElementById('edit_address').value = address;
+        document.getElementById('edit_office_or_field').value = assignmentId;
+        document.getElementById('edit_role').value = roleId;
+        document.getElementById('edit_gender').value = genderId;
+        
+        const imgPreview = document.getElementById('edit-pfp-preview');
+        if (pfpUrl && pfpUrl !== 'NONE') {
+            imgPreview.src = pfpUrl;
+        } else {
+            imgPreview.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(empName)}&background=0062ff&color=fff&bold=true`;
+        }
+        
+        new bootstrap.Modal(document.getElementById('editModal')).show();
+    }
+
+    function editCat(id, name, type) {
+        Swal.fire({
+            title: `MODIFY MASTER ${type.toUpperCase()}?`,
+            input: 'text',
+            inputValue: name,
+            html: `
+                <p class="small text-muted mb-3 text-center">Modifying this value will instantly synchronize all active worker records linked to "${name}".</p>
+                <div class="d-flex align-items-center justify-content-center gap-2 mt-2" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                    <input type="checkbox" id="editCheck" style="cursor: pointer; transform: scale(1.1);">
+                    <label for="editCheck" style="cursor: pointer; font-weight: 600; font-size: 13px; color: #1e293b; user-select: none;">I understand this updates all linked employee records</label>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonColor: '#0062ff',
+            confirmButtonText: 'UPDATE ALL RECORDS',
+            preConfirm: () => {
+                const inputValue = Swal.getInput().value;
+                const isChecked = document.getElementById('editCheck').checked;
+                
+                if (!inputValue) {
+                    Swal.showValidationMessage('You need to specify a valid title value!');
+                    return false;
+                }
+                if (!isChecked) {
+                    Swal.showValidationMessage('Verification Blocked: You must check the validation acknowledgement field!');
+                    return false;
+                }
+                return inputValue;
+            }
+        }).then(r => {
+            if (r.isConfirmed && r.value) {
+                const f = document.createElement('form'); f.method = 'POST';
+                let html = `{% csrf_token %}<input type="hidden" name="${type}_id" value="${id}"><input type="hidden" name="${type}_name" value="${r.value}"><input type="hidden" name="edit_${type}" value="1">`;
+                f.innerHTML = html; document.body.appendChild(f); f.submit();
+            }
+        });
+    }
 </script>
 </body>
 </html>

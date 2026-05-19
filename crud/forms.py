@@ -3,14 +3,15 @@ from .models import UserProfile, Gender
 
 class UserForm(forms.ModelForm):
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter password'}),
+        required=False,
+        widget=forms.PasswordInput(attrs={'class': 'cyber-input', 'placeholder': 'Enter password'}),
         label="Password"
     )
     confirm_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm password'}),
+        required=False,
+        widget=forms.PasswordInput(attrs={'class': 'cyber-input', 'placeholder': 'Confirm password'}),
         label="Confirm Password"
     )
-    # Added required=False so the form doesn't reset when photo is blank
     profile_pic = forms.ImageField(
         required=False, 
         widget=forms.FileInput(attrs={'class': 'form-control'})
@@ -18,11 +19,16 @@ class UserForm(forms.ModelForm):
 
     class Meta:
         model = UserProfile
-        fields = ['username', 'email', 'gender', 'profile_pic']
+        fields = ['username', 'employee_name', 'age', 'gender', 'email', 'address', 'office_or_field', 'role', 'profile_pic']
         widgets = {
-            'username': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'gender': forms.Select(attrs={'class': 'form-select'}),
+            'username': forms.TextInput(attrs={'class': 'cyber-input'}),
+            'employee_name': forms.TextInput(attrs={'class': 'cyber-input'}),
+            'age': forms.NumberInput(attrs={'class': 'cyber-input'}),
+            'gender': forms.Select(attrs={'class': 'cyber-input'}),
+            'email': forms.EmailInput(attrs={'class': 'cyber-input'}),
+            'address': forms.Textarea(attrs={'class': 'cyber-input', 'rows': 2}),
+            'office_or_field': forms.Select(attrs={'class': 'cyber-input'}),
+            'role': forms.Select(attrs={'class': 'cyber-input'}),
         }
 
     def clean(self):

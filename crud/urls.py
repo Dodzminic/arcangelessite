@@ -2,6 +2,10 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Portal Security Authentication Gateway
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+
     # Main Vault Dashboard
     path('', views.user_list, name='user_list'),
     
@@ -16,4 +20,6 @@ urlpatterns = [
     
     # Data Operations
     path('export/', views.export_users_csv, name='export_users'),
+
+   
 ]
