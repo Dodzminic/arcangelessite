@@ -1,12 +1,14 @@
 import os
 from pathlib import Path
 
-# BASE_DIR must be at the very top
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-filsync-sovereign-key'
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'gliconstructionportal.loca.lt']
+
+# Add this brand new line right below it:
+CSRF_TRUSTED_ORIGINS = ['https://gliconstructionportal.loca.lt']
 
 INSTALLED_APPS = [
     'crud.apps.CrudConfig',
@@ -29,6 +31,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'arcangelessite.urls'
+WSGI_APPLICATION = 'arcangelessite.wsgi.application'
 
 TEMPLATES = [
     {
@@ -51,7 +54,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'arcangelesdj_db',
         'USER': 'root',
-        'PASSWORD': '', # Keep as empty string if using default XAMPP settings
+        'PASSWORD': '',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'OPTIONS': {
@@ -60,7 +63,25 @@ DATABASES = {
     }
 }
 
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
+
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'Asia/Manila'
+USE_I18N = True
+USE_TZ = True
+
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'

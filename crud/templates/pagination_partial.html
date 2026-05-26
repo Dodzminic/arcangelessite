@@ -1,0 +1,21 @@
+<ul class="pagination justify-content-center gap-1">
+    {% if users.has_previous %}
+    <li class="page-item">
+        <a class="page-link" href="?page={{ users.previous_page_number }}{% if query %}&q={{ query }}{% endif %}&sort={{ current_sort }}&assignment={{ current_assignment }}&role={{ current_role }}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+    </li>
+    {% endif %}
+    {% for num in users.paginator.page_range %}
+    <li class="page-item {% if users.number == num %}active{% endif %}">
+        <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}&sort={{ current_sort }}&assignment={{ current_assignment }}&role={{ current_role }}">{{ num }}</a>
+    </li>
+    {% endfor %}
+    {% if users.has_next %}
+    <li class="page-item">
+        <a class="page-link" href="?page={{ users.next_page_number }}{% if query %}&q={{ query }}{% endif %}&sort={{ current_sort }}&assignment={{ current_assignment }}&role={{ current_role }}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </li>
+    {% endif %}
+</ul>
