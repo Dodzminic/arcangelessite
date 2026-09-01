@@ -585,3 +585,12 @@ def bulk_archive_action(request):
                 ActivityLog.objects.create(action=f"Bulk Engine: Restored {len(user_ids)} archived records to active.")
                 messages.success(request, f"Restored {len(user_ids)} personnel records.")
     return redirect('/dashboard/?open_modal=archiveVaultModal')
+
+# ══ EMPLOYEE RECORD (QR Scan Target) ══
+# No @login_required — any device on the same network can view after scanning
+def employee_record(request, emp_id):
+    employee = get_object_or_404(UserProfile, username=emp_id, is_active=True)
+    return render(request, 'employee_record.html', {
+        'employee': employee,
+        'now': timezone.now(),
+    })

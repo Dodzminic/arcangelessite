@@ -1249,6 +1249,51 @@
         .live-chip.success { background: rgba(16,185,129,0.10); color: #10b981; display: flex; }
         .live-warn { font-size: 11px; font-weight: 800; color: #ff4757; display: none; text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px; }
 
+        /* ── Per-field warning chips ── */
+        .field-warn {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #f87171;
+            background: rgba(239,68,68,0.10);
+            border: 1px solid rgba(239,68,68,0.25);
+            border-radius: 8px;
+            padding: 5px 10px;
+            margin-top: 5px;
+            animation: warnPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .field-warn.show { display: flex; }
+        @keyframes warnPop {
+            from { opacity:0; transform: translateY(-4px) scale(0.96); }
+            to   { opacity:1; transform: translateY(0) scale(1); }
+        }
+        @keyframes shakeBtn {
+            0%,100% { transform: translateX(0); }
+            20%     { transform: translateX(-6px); }
+            40%     { transform: translateX(6px); }
+            60%     { transform: translateX(-4px); }
+            80%     { transform: translateX(4px); }
+        }
+
+        /* ── Step panel section headers ── */
+        .step-section-label {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 10px; font-weight: 800; letter-spacing: 1.2px;
+            text-transform: uppercase; color: var(--accent);
+            margin-bottom: 12px; margin-top: 4px;
+        }
+        .step-section-label::before {
+            content: ''; width: 3px; height: 14px;
+            background: linear-gradient(180deg,#3d7fff,#8b5cf6);
+            border-radius: 2px; flex-shrink: 0;
+        }
+        .step-section-label::after {
+            content: ''; flex: 1; height: 1px;
+            background: var(--border-blue);
+        }
+
         /* Step wizard */
         .step-bar { display: flex; align-items: center; margin-bottom: 28px; }
         .step-node { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; position: relative; }
@@ -3338,11 +3383,22 @@
 <!-- ══════════════ ADD EMPLOYEE MODAL ══════════════ -->
 <div class="modal fade" id="addModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content p-5">
+        <div class="modal-content p-5" style="position:relative;overflow:hidden;">
+
+            <!-- Decorative background blobs -->
+            <div style="pointer-events:none;position:absolute;top:-60px;right:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(61,127,255,0.09) 0%,transparent 70%);z-index:0;"></div>
+            <div style="pointer-events:none;position:absolute;bottom:-40px;left:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,0.07) 0%,transparent 70%);z-index:0;"></div>
+
+            <div style="position:relative;z-index:1;">
             <div class="d-flex justify-content-between align-items-start mb-1">
-                <div>
-                    <h4 class="fw-800 text-accent mb-0">REGISTER NEW EMPLOYEE</h4>
-                    <p class="small mb-0" style="color:var(--text-muted);font-size:12px;">> Complete all 3 steps to commit the record to vault.</p>
+                <div style="display:flex;align-items:center;gap:14px;">
+                    <div style="width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,rgba(26,68,148,0.4),rgba(61,127,255,0.2));border:1.5px solid rgba(61,127,255,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 16px rgba(61,127,255,0.15);">
+                        <i class="bi bi-person-plus-fill" style="color:#3d7fff;font-size:20px;"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-800 text-accent mb-0" style="font-size:16px;letter-spacing:0.5px;">REGISTER NEW EMPLOYEE</h4>
+                        <p class="small mb-0" style="color:var(--text-muted);font-size:11px;letter-spacing:0.3px;"><i class="bi bi-shield-lock me-1" style="color:var(--accent);font-size:9px;"></i> Complete all 3 steps to commit the record to vault.</p>
+                    </div>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -3359,6 +3415,7 @@
 
                 <!-- STEP 1 -->
                 <div class="step-panel active" id="add-step-1">
+                    <div class="step-section-label"><i class="bi bi-person-vcard"></i> Personal Identity</div>
                     <div class="text-center mb-4">
                         <div class="pfp-ring" onclick="document.getElementById('add_pfp_input').click()">
                             <img id="add_pfp_preview" src="https://ui-avatars.com/api/?name=New+Employee&background=1a4494&color=fff&bold=true">
@@ -3373,6 +3430,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-float"><input type="text" name="employee_name" id="add_empname" placeholder=" " required><label>Full Name</label></div>
+                            <div class="field-warn" id="warn-empname"><i class="bi bi-exclamation-triangle-fill"></i> Full name is required</div>
                         </div>
                         <div class="col-md-4">
                             <div style="position:relative;">
@@ -3385,7 +3443,15 @@
                                 <div class="age-warning" id="age-warn-add"><i class="bi bi-exclamation-triangle-fill"></i> Minimum age is 18 years old</div>
                             </div>
                         </div>
-                        <div class="col-md-8">
+                        <div class="col-md-4">
+                            <div style="position:relative;">
+                                <label style="position:absolute;top:8px;left:17px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);font-weight:800;pointer-events:none;z-index:2;"><i class="bi bi-calendar-heart me-1"></i>Birthdate</label>
+                                <input type="date" name="birthday" id="add_birthday" required
+                                    style="width:100%;padding:28px 16px 10px;border-radius:14px;background:rgba(0,0,0,0.25);border:1.5px solid var(--border-blue);color:var(--text);font-size:13px;font-weight:600;font-family:inherit;outline:none;transition:border-color 0.2s;color-scheme:dark;">
+                                <div class="field-warn" id="warn-birthday"><i class="bi bi-exclamation-triangle-fill"></i> Birthdate is required</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
                             <div class="form-float" style="position:relative;">
                                 <select name="gender" id="add_gender_real" required style="display:none;">{% for g in genders %}<option value="{{ g.id }}">{{ g.gender }}</option>{% endfor %}</select>
                                 <div class="gli-modal-select-wrap" id="mwrap-add_gender">
@@ -3408,6 +3474,7 @@
                         </div>
                         <div class="col-12">
                             <div class="form-float"><textarea name="address" placeholder=" " rows="2" required></textarea><label>Home Address</label></div>
+                            <div class="field-warn" id="warn-address"><i class="bi bi-exclamation-triangle-fill"></i> Home address is required</div>
                         </div>
                     </div>
                     <div class="d-flex justify-content-end mt-4">
@@ -3417,6 +3484,7 @@
 
                 <!-- STEP 2 -->
                 <div class="step-panel" id="add-step-2">
+                    <div class="step-section-label"><i class="bi bi-building-fill-gear"></i> Assignment & Contact</div>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="form-float" style="position:relative;">
@@ -3478,12 +3546,15 @@
 
                 <!-- STEP 3 -->
                 <div class="step-panel" id="add-step-3">
+                    <div class="step-section-label"><i class="bi bi-shield-lock-fill"></i> Security Credentials</div>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="form-float"><input type="password" id="p1" name="password" placeholder=" " required><label>Password</label><i class="bi bi-eye-slash pass-toggle" onclick="togglePass('p1',this)"></i></div>
+                            <div class="field-warn" id="warn-p1"><i class="bi bi-exclamation-triangle-fill"></i> Password is required</div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-float"><input type="password" id="p2" placeholder=" " required><label>Confirm Password</label><i class="bi bi-eye-slash pass-toggle" onclick="togglePass('p2',this)"></i></div>
+                            <div class="field-warn" id="warn-p2"><i class="bi bi-exclamation-triangle-fill"></i> Please confirm your password</div>
                         </div>
                     </div>
                     <div id="p-warn" class="live-chip error mt-2" style="display:none;"><i class="bi bi-exclamation-circle-fill"></i> Passwords do not match</div>
@@ -3494,6 +3565,7 @@
                     </div>
                 </div>
             </form>
+            </div><!-- end z-index wrapper -->
         </div>
     </div>
 </div>
@@ -4462,84 +4534,130 @@
 <!-- ═══ EMPLOYEE ID CARD MODAL ═══ -->
 <div id="idCardModal" class="gli-overlay-modal" onclick="if(event.target===this)closeOverlayModal('idCardModal')" style="display:none;position:fixed;inset:0;z-index:99999;align-items:center;justify-content:center;background:rgba(0,0,0,0.88);backdrop-filter:blur(12px);">
     <div style="display:flex;flex-direction:column;align-items:center;gap:20px;">
-        <!-- Card itself -->
-        <div id="idCardPrintable" style="width:360px;border-radius:22px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.7);font-family:'Plus Jakarta Sans',sans-serif;position:relative;">
-            <!-- Header band -->
-            <div style="background:linear-gradient(135deg,#060d1a 0%,#1a4494 60%,#3d7fff 100%);padding:24px 22px 20px;position:relative;overflow:hidden;">
-                <!-- Decorative circles -->
-                <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(61,127,255,0.12);"></div>
-                <div style="position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
-                <!-- Company -->
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;position:relative;">
-                    <div>
-                        <div style="font-size:9px;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,0.5);text-transform:uppercase;">GLI Construction Services</div>
-                        <div style="font-size:8px;color:rgba(255,255,255,0.3);margin-top:2px;">Employee Identification Card</div>
-                    </div>
-                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;">
-                        <span style="font-size:11px;font-weight:900;color:#fff;">GLI</span>
-                    </div>
-                </div>
-                <!-- Avatar + name -->
-                <div style="display:flex;align-items:center;gap:14px;position:relative;">
-                    <div style="position:relative;">
-                        <img id="ic-avatar" src="" style="width:72px;height:72px;border-radius:16px;object-fit:cover;border:3px solid rgba(255,255,255,0.25);box-shadow:0 8px 24px rgba(0,0,0,0.4);">
-                        <div style="position:absolute;bottom:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:#10b981;border:2px solid #060d1a;display:flex;align-items:center;justify-content:center;">
-                            <i class="bi bi-check" style="font-size:9px;color:#fff;"></i>
+
+        <!-- ── FLIP CARD SCENE ── -->
+        <div class="id-card-scene" id="idCardScene" onclick="flipIdCard()">
+            <div class="id-card-flipper" id="idCardFlipper">
+
+                <!-- ════ FRONT FACE ════ -->
+                <div class="id-card-face id-card-front" id="idCardFront">
+                    <!-- Header band -->
+                    <div style="background:linear-gradient(135deg,#060d1a 0%,#1a4494 60%,#3d7fff 100%);padding:14px 16px 12px;position:relative;overflow:hidden;height:110px;box-sizing:border-box;">
+                        <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(61,127,255,0.12);"></div>
+                        <div style="position:absolute;bottom:-14px;left:-14px;width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
+                        <!-- Company row -->
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;position:relative;">
+                            <div>
+                                <div style="font-size:7px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.5);text-transform:uppercase;">GLI Construction Services</div>
+                                <div style="font-size:6.5px;color:rgba(255,255,255,0.3);margin-top:1px;">Employee Identification Card</div>
+                            </div>
+                            <div style="width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;">
+                                <span style="font-size:9px;font-weight:900;color:#fff;">GLI</span>
+                            </div>
+                        </div>
+                        <!-- Avatar + name -->
+                        <div style="display:flex;align-items:center;gap:10px;position:relative;">
+                            <div style="position:relative;flex-shrink:0;">
+                                <img id="ic-avatar" src="" style="width:54px;height:54px;border-radius:10px;object-fit:cover;border:2px solid rgba(255,255,255,0.25);box-shadow:0 6px 18px rgba(0,0,0,0.4);">
+                                <div style="position:absolute;bottom:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:#10b981;border:2px solid #060d1a;display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-check" style="font-size:7px;color:#fff;"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <div id="ic-name" style="font-size:13px;font-weight:800;color:#fff;letter-spacing:-0.2px;line-height:1.2;"></div>
+                                <div id="ic-role" style="font-size:8px;font-weight:700;color:#a0c4ff;margin-top:3px;"></div>
+                                <div id="ic-id" style="font-size:7.5px;font-weight:800;color:#3d7fff;margin-top:4px;letter-spacing:1.5px;font-family:monospace;background:rgba(61,127,255,0.18);padding:2px 6px;border-radius:4px;display:inline-block;"></div>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <div id="ic-name" style="font-size:17px;font-weight:800;color:#fff;letter-spacing:-0.3px;line-height:1.2;"></div>
-                        <div id="ic-role" style="font-size:10px;font-weight:700;color:#a0c4ff;margin-top:4px;"></div>
-                        <div id="ic-id" style="font-size:9px;font-weight:800;color:#3d7fff;margin-top:5px;letter-spacing:2px;font-family:monospace;background:rgba(61,127,255,0.15);padding:3px 8px;border-radius:5px;display:inline-block;"></div>
-                    </div>
-                </div>
-            </div>
-            <!-- Body -->
-            <div style="background:#fff;padding:18px 22px;">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
-                    <div>
-                        <div style="font-size:7px;font-weight:800;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;">Gender</div>
-                        <div id="ic-gender" style="font-size:12px;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:5px;"></div>
-                    </div>
-                    <div>
-                        <div style="font-size:7px;font-weight:800;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;">Age</div>
-                        <div id="ic-age" style="font-size:12px;font-weight:700;color:#0f172a;"></div>
-                    </div>
-                    <div style="grid-column:1/-1;">
-                        <div style="font-size:7px;font-weight:800;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;">Email Address</div>
-                        <div id="ic-email" style="font-size:11px;font-weight:600;color:#0f172a;"></div>
-                    </div>
-                    <div style="grid-column:1/-1;">
-                        <div style="font-size:7px;font-weight:800;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;">Deployment Assignment</div>
-                        <div id="ic-assignment" style="font-size:11px;font-weight:700;color:#1a4494;display:flex;align-items:center;gap:5px;"></div>
-                    </div>
-                </div>
-                <!-- Footer bar -->
-                <div style="border-top:1px solid #e2e8f0;padding-top:12px;display:flex;align-items:center;justify-content:space-between;">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <div id="ic-qr-mini" style="width:36px;height:36px;background:#f1f5f9;border-radius:6px;display:flex;align-items:center;justify-content:center;">
-                            <i class="bi bi-qr-code" style="font-size:20px;color:#94a3b8;"></i>
+                    <!-- Body -->
+                    <div style="background:#fff;padding:10px 14px 8px;height:104px;box-sizing:border-box;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin-bottom:8px;">
+                            <div>
+                                <div style="font-size:6px;font-weight:800;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px;">Gender</div>
+                                <div id="ic-gender" style="font-size:10px;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:4px;"></div>
+                            </div>
+                            <div>
+                                <div style="font-size:6px;font-weight:800;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px;">Age</div>
+                                <div id="ic-age" style="font-size:10px;font-weight:700;color:#0f172a;"></div>
+                            </div>
+                            <div style="grid-column:1/-1;">
+                                <div style="font-size:6px;font-weight:800;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px;">Birthday</div>
+                                <div style="display:inline-flex;align-items:center;gap:5px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:2px 7px;">
+                                    <i class="bi bi-cake2-fill" style="font-size:9px;color:#0ea5e9;"></i>
+                                    <span id="ic-birthday" style="font-size:9px;font-weight:700;color:#0369a1;"></span>
+                                </div>
+                            </div>
+                            <div style="grid-column:1/-1;">
+                                <div style="font-size:6px;font-weight:800;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px;">Email Address</div>
+                                <div id="ic-email" style="font-size:9px;font-weight:600;color:#0f172a;"></div>
+                            </div>
                         </div>
-                        <div>
-                            <div style="font-size:7px;font-weight:800;color:#94a3b8;letter-spacing:1px;">SCAN FOR PROFILE</div>
-                            <div style="font-size:8px;color:#cbd5e1;margin-top:1px;">Verified Employee</div>
+                        <!-- Deployment + footer -->
+                        <div style="border-top:1px solid #e2e8f0;padding-top:6px;display:flex;align-items:center;justify-content:space-between;">
+                            <div style="display:flex;align-items:center;gap:5px;">
+                                <i id="ic-assign-icon" class="bi bi-house-fill" style="font-size:9px;color:#1a4494;"></i>
+                                <span id="ic-assignment" style="font-size:9px;font-weight:700;color:#1a4494;text-transform:uppercase;letter-spacing:0.5px;"></span>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-size:6px;color:#cbd5e1;font-weight:600;">ISSUED BY</div>
+                                <div style="font-size:7.5px;font-weight:800;color:#1a4494;">GLI HR SYSTEM</div>
+                            </div>
                         </div>
                     </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:7px;color:#cbd5e1;font-weight:600;">ISSUED BY</div>
-                        <div style="font-size:9px;font-weight:800;color:#1a4494;">GLI HR SYSTEM</div>
+                    <!-- Bottom accent bar -->
+                    <div style="height:5px;background:linear-gradient(90deg,#3d7fff,#10b981,#c4b5fd);"></div>
+                </div><!-- /front -->
+
+                <!-- ════ BACK FACE ════ -->
+                <div class="id-card-face id-card-back" id="idCardBack" style="background:linear-gradient(145deg,#060d1a 0%,#0b1631 40%,#1a4494 100%);">
+                    <div style="position:absolute;top:-40px;left:-40px;width:160px;height:160px;border-radius:50%;background:rgba(61,127,255,0.07);pointer-events:none;"></div>
+                    <div style="position:absolute;bottom:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(61,127,255,0.05);pointer-events:none;"></div>
+                    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:8px;">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+                            <div style="width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;">
+                                <span style="font-size:11px;font-weight:900;color:#fff;">GLI</span>
+                            </div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:11px;font-weight:900;color:#fff;letter-spacing:2px;text-transform:uppercase;">ONE TEAM.</div>
+                            <div style="font-size:11px;font-weight:900;color:#3d7fff;letter-spacing:2px;text-transform:uppercase;">ONE MISSION.</div>
+                        </div>
+                        <div style="text-align:center;font-size:7px;color:rgba(255,255,255,0.45);line-height:1.5;max-width:200px;">
+                            This ID is the property of GLI Construction Services.<br>If found, please return to the HR Department.
+                        </div>
+                        <div style="background:#fff;padding:6px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;">
+                            <div id="ic-qr-back" style="width:52px;height:52px;display:flex;align-items:center;justify-content:center;"></div>
+                        </div>
+                        <div id="ic-id-back" style="font-size:8px;font-weight:800;color:#3d7fff;letter-spacing:2px;font-family:monospace;"></div>
                     </div>
-                </div>
-            </div>
-            <!-- Bottom accent bar -->
-            <div style="height:6px;background:linear-gradient(90deg,#3d7fff,#10b981,#c4b5fd);"></div>
+                    <div style="position:absolute;bottom:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#3d7fff,#10b981,#c4b5fd);"></div>
+                </div><!-- /back -->
+
+            </div><!-- /flipper -->
+        </div><!-- /scene -->
+
+        <!-- ── FLIP HINT ── -->
+        <div style="font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:1px;text-align:center;margin-top:-8px;">
+            <i class="bi bi-arrow-repeat" style="margin-right:4px;"></i>CLICK CARD TO FLIP
         </div>
-        <!-- Actions -->
+
+        <!-- ── ACTION BUTTONS ── -->
         <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
-            <button onclick="printIdCard()" style="background:rgba(61,127,255,0.15);border:1px solid rgba(61,127,255,0.3);color:#3d7fff;padding:10px 20px;border-radius:12px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all 0.2s;" onmouseover="this.style.background='rgba(61,127,255,0.3)'" onmouseout="this.style.background='rgba(61,127,255,0.15)'"><i class="bi bi-printer-fill"></i>Print Card</button>
-            <button onclick="downloadIdCardPng()" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:10px 20px;border-radius:12px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.3)';this.style.color='#fff'" onmouseout="this.style.background='rgba(16,185,129,0.15)';this.style.color='#10b981'" id="idCardDownloadBtn"><i class="bi bi-download"></i>Save as PNG</button>
-            <button onclick="closeOverlayModal('idCardModal')" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:#f87171;padding:10px 20px;border-radius:12px;font-size:12px;font-weight:800;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.background='rgba(239,68,68,0.12)'">Close</button>
+            <button onclick="printIdCard()" style="background:rgba(61,127,255,0.15);border:1px solid rgba(61,127,255,0.3);color:#3d7fff;padding:10px 20px;border-radius:12px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all 0.2s;" onmouseover="this.style.background='rgba(61,127,255,0.3)'" onmouseout="this.style.background='rgba(61,127,255,0.15)'">
+                <i class="bi bi-printer-fill"></i>Print Card
+            </button>
+            <button onclick="downloadIdCardPng()" id="idCardDownloadBtn" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:10px 20px;border-radius:12px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.3)';this.style.color='#fff'" onmouseout="this.style.background='rgba(16,185,129,0.15)';this.style.color='#10b981'">
+                <i class="bi bi-download"></i>Save as PNG
+            </button>
+            <button onclick="closeOverlayModal('idCardModal')" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:#f87171;padding:10px 20px;border-radius:12px;font-size:12px;font-weight:800;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.25)'" onmouseout="this.style.background='rgba(239,68,68,0.12)'">
+                Close
+            </button>
+            <button onclick="flipIdCard()" class="flip-btn-glow" style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.3);color:#a855f7;padding:10px 20px;border-radius:12px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all 0.2s;" onmouseover="this.style.background='rgba(168,85,247,0.3)';this.style.color='#fff'" onmouseout="this.style.background='rgba(168,85,247,0.15)';this.style.color='#a855f7'">
+                <i class="bi bi-arrow-repeat"></i>Flip Card
+            </button>
         </div>
+
     </div>
 </div>
 
@@ -4561,9 +4679,10 @@
     </div>
 </div>
 
-<!-- ═══ PRINT EMPLOYEE CARD (hidden, for print only) ═══ -->
+<!-- ═══ PRINT CARD — Front + Back side by side, 1 page ═══ -->
 <div id="printCard">
-    <div id="idCardPrintClone" style="width:360px;font-family:'Plus Jakarta Sans',sans-serif;"></div>
+    <div id="printFrontStatic" style="display:none;font-family:'Plus Jakarta Sans',sans-serif;"></div>
+    <div id="printBackStatic" style="display:none;font-family:'Plus Jakarta Sans',sans-serif;"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -5206,12 +5325,52 @@
 
     // ══ STEP WIZARD
     let addCurrentStep = 1;
+
+    // Field → warning id map for step 1
+    const step1WarningMap = {
+        'add_empname':  'warn-empname',
+        'add_birthday': 'warn-birthday',
+        'address':      'warn-address',
+    };
+
     function addGoStep(target) {
         if(target > addCurrentStep) {
             const panel = document.getElementById('add-step-'+addCurrentStep);
             let ok = true;
-            panel.querySelectorAll('[required]').forEach(el => { if(!el.value.trim()){el.classList.add('input-error');ok=false;}else{el.classList.remove('input-error');} });
-            if(!ok) return;
+
+            if(addCurrentStep === 1) {
+                // Check each required field and show specific warnings
+                panel.querySelectorAll('[required]').forEach(el => {
+                    const empty = !el.value.trim();
+                    if(empty) { el.classList.add('input-error'); ok = false; }
+                    else { el.classList.remove('input-error'); }
+                    // Show/hide named warning if exists
+                    const warnId = step1WarningMap[el.id] || step1WarningMap[el.name];
+                    if(warnId) {
+                        const w = document.getElementById(warnId);
+                        if(w) { if(empty) w.classList.add('show'); else w.classList.remove('show'); }
+                    }
+                });
+                if(!ok) {
+                    // Shake the Next button
+                    const btn = panel.querySelector('.btn-step-next');
+                    if(btn) { btn.style.animation='none'; btn.offsetHeight; btn.style.animation='shakeBtn 0.4s ease'; }
+                    return;
+                }
+            } else if(addCurrentStep === 3) {
+                // Password fields
+                const p1 = document.getElementById('p1');
+                const p2 = document.getElementById('p2');
+                const w1 = document.getElementById('warn-p1');
+                const w2 = document.getElementById('warn-p2');
+                if(!p1.value.trim()) { p1.classList.add('input-error'); if(w1) w1.classList.add('show'); ok=false; } else { p1.classList.remove('input-error'); if(w1) w1.classList.remove('show'); }
+                if(!p2.value.trim()) { p2.classList.add('input-error'); if(w2) w2.classList.add('show'); ok=false; } else { p2.classList.remove('input-error'); if(w2) w2.classList.remove('show'); }
+                if(!ok) return;
+            } else {
+                panel.querySelectorAll('[required]').forEach(el => { if(!el.value.trim()){el.classList.add('input-error');ok=false;}else{el.classList.remove('input-error');} });
+                if(!ok) return;
+            }
+
             // Block step 3 if email format invalid or taken
             if(addCurrentStep===2) {
                 const emailVal = eAddInput ? eAddInput.value.trim() : '';
@@ -5246,6 +5405,27 @@
     document.getElementById('addModal').addEventListener('hidden.bs.modal', () => {
         [1,2,3].forEach(s=>{ document.getElementById('add-step-'+s).classList.remove('active'); const n=document.getElementById('add-sn-'+s); n.classList.remove('active','done'); });
         addCurrentStep=1; document.getElementById('add-step-1').classList.add('active'); document.getElementById('add-sn-1').classList.add('active');
+        // Clear all field warnings on modal close
+        document.querySelectorAll('#addModal .field-warn').forEach(w => w.classList.remove('show'));
+        document.querySelectorAll('#addModal .input-error').forEach(el => el.classList.remove('input-error'));
+    });
+
+    // ── Clear field warnings as user types/fills ──
+    ['add_empname','add_birthday','p1','p2'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.addEventListener('input', function() {
+            if(this.value.trim()) {
+                this.classList.remove('input-error');
+                const warnMap = {'add_empname':'warn-empname','add_birthday':'warn-birthday','p1':'warn-p1','p2':'warn-p2'};
+                const w = document.getElementById(warnMap[id]);
+                if(w) w.classList.remove('show');
+            }
+        });
+    });
+    const addrEl = document.querySelector('#add-step-1 textarea[name="address"]');
+    if(addrEl) addrEl.addEventListener('input', function() {
+        if(this.value.trim()) { this.classList.remove('input-error'); const w=document.getElementById('warn-address'); if(w) w.classList.remove('show'); }
     });
 
     // ══ ANIMATED COUNTERS
@@ -5485,78 +5665,174 @@
         }, 320);
     }
 
+    // ══ FLIP STATE
+    let _icFlipped = false;
+
+    function flipIdCard() {
+        _icFlipped = !_icFlipped;
+        const flipper = document.getElementById('idCardFlipper');
+        if (_icFlipped) {
+            flipper.classList.add('flipped');
+        } else {
+            flipper.classList.remove('flipped');
+        }
+    }
+
+    // ══ BUILD BACK QR
+    function _buildBackQr(empId) {
+        const container = document.getElementById('ic-qr-back');
+        if (!container) return;
+        container.innerHTML = '';
+        try {
+            new QRCode(container, {
+                text: empId || 'GLI-HR',
+                width: 52, height: 52,
+                colorDark: '#000000', colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        } catch(e) {
+            container.innerHTML = '<i class="bi bi-qr-code" style="font-size:28px;color:#94a3b8;"></i>';
+        }
+    }
+
+    function _birthdayFromAge(age) {
+        const yr = new Date().getFullYear() - parseInt(age || 0);
+        return 'Born ~' + yr;
+    }
+
     // ══ ID CARD MODAL
     function openIdCard(name, empId, email, age, genderName, genderIcon, genderColor, assignName, assignIcon, assignBadge, roleName, roleColor, avatarSrc) {
+        _icFlipped = false;
+        document.getElementById('idCardFlipper').classList.remove('flipped');
+
         document.getElementById('ic-avatar').src = avatarSrc;
-        document.getElementById('ic-name').textContent = name;
-        document.getElementById('ic-role').textContent = roleName || '—';
-        document.getElementById('ic-id').textContent = empId;
-        document.getElementById('ic-age').textContent = age + ' years old';
+        document.getElementById('ic-name').textContent  = name;
+        document.getElementById('ic-role').textContent  = roleName || '—';
+        document.getElementById('ic-id').textContent    = empId;
+        document.getElementById('ic-age').textContent   = age + ' years old';
         document.getElementById('ic-email').textContent = email || '—';
-        document.getElementById('ic-gender').innerHTML = '<i class="bi ' + (genderIcon||'bi-gender-ambiguous') + '" style="color:' + (genderColor||'#c4b5fd') + ';font-size:13px;"></i>' + (genderName||'—');
-        document.getElementById('ic-assignment').innerHTML = '<i class="bi ' + (assignIcon||'bi-geo-alt-fill') + '" style="color:#1a4494;font-size:12px;"></i>' + (assignName||'—');
+        document.getElementById('ic-birthday').textContent = _birthdayFromAge(age);
+
+        document.getElementById('ic-gender').innerHTML =
+            '<i class="bi ' + (genderIcon||'bi-gender-ambiguous') +
+            '" style="color:' + (genderColor||'#c4b5fd') + ';font-size:11px;"></i>' +
+            (genderName||'—');
+
+        document.getElementById('ic-assignment').textContent = assignName || '—';
+        const assignIconEl = document.getElementById('ic-assign-icon');
+        if (assignIconEl) assignIconEl.className = 'bi ' + (assignIcon||'bi-geo-alt-fill');
+
+        document.getElementById('ic-id-back').textContent = empId;
+        _buildBackQr(empId);
+
         bootstrap.Modal.getInstance(document.getElementById('profileViewModal'))?.hide();
         setTimeout(() => openOverlayModal('idCardModal'), 350);
     }
 
+    // ══ PRINT — Front + Back side by side, landscape, 1 page
     function printIdCard() {
-        const card = document.getElementById('idCardPrintable');
-        document.getElementById('idCardPrintClone').innerHTML = card.outerHTML;
-        document.getElementById('printCard').style.display = 'flex';
-        setTimeout(() => { window.print(); document.getElementById('printCard').style.display = 'none'; }, 200);
+        const front = document.getElementById('idCardFront');
+        const back  = document.getElementById('idCardBack');
+        const pf = document.getElementById('printFrontStatic');
+        const pb = document.getElementById('printBackStatic');
+        pf.innerHTML = front.outerHTML;
+        pb.innerHTML = back.outerHTML;
+        document.getElementById('printCard').style.cssText =
+            'display:flex;align-items:center;justify-content:center;gap:16px;';
+        setTimeout(() => {
+            window.print();
+            document.getElementById('printCard').style.display = 'none';
+            pf.innerHTML = '';
+            pb.innerHTML = '';
+        }, 250);
     }
 
-    // ══ PNG DOWNLOAD — uses html2canvas via CDN
+    // ══ SAVE AS PNG — both sides side by side
     function downloadIdCardPng() {
-        const card = document.getElementById('idCardPrintable');
-        const btn  = document.getElementById('idCardDownloadBtn');
+        const btn     = document.getElementById('idCardDownloadBtn');
         const empName = document.getElementById('ic-name').textContent || 'employee';
         const empId   = document.getElementById('ic-id').textContent   || 'card';
 
         btn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation:spin 0.7s linear infinite;display:inline-block;"></i> Rendering...';
-        btn.disabled = true;
+        btn.disabled  = true;
 
-        // Load html2canvas on demand
+        function doRender() {
+            const front = document.getElementById('idCardFront');
+            const back  = document.getElementById('idCardBack');
+            const captureOpts = { scale: 3, useCORS: true, allowTaint: true, backgroundColor: null, logging: false };
+
+            Promise.all([
+                html2canvas(front, captureOpts),
+                html2canvas(back,  captureOpts)
+            ]).then(([frontCanvas, backCanvas]) => {
+                const gap    = 24 * 3;
+                const w      = frontCanvas.width + gap + backCanvas.width;
+                const h      = Math.max(frontCanvas.height, backCanvas.height);
+                const pad    = 40 * 3;
+                const bgW    = w + pad * 2;
+                const bgH    = h + pad * 2;
+
+                const stitched = document.createElement('canvas');
+                stitched.width  = bgW;
+                stitched.height = bgH;
+                const ctx = stitched.getContext('2d');
+
+                ctx.fillStyle = '#060d1a';
+                ctx.fillRect(0, 0, bgW, bgH);
+
+                ctx.fillStyle = 'rgba(61,127,255,0.06)';
+                for (let x = 0; x < bgW; x += 24) {
+                    for (let y = 0; y < bgH; y += 24) {
+                        ctx.beginPath();
+                        ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                const frontY = pad + (h - frontCanvas.height) / 2;
+                const backY  = pad + (h - backCanvas.height)  / 2;
+                ctx.drawImage(frontCanvas, pad, frontY);
+                ctx.drawImage(backCanvas,  pad + frontCanvas.width + gap, backY);
+
+                const link = document.createElement('a');
+                link.download = 'GLI-ID-' + empId.replace(/[^a-zA-Z0-9-]/g,'') + '-' + empName.replace(/\s+/g,'-') + '.png';
+                link.href = stitched.toDataURL('image/png');
+                link.click();
+
+                btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Downloaded!';
+                btn.style.background = 'rgba(16,185,129,0.3)';
+                btn.style.color = '#fff';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="bi bi-download"></i>Save as PNG';
+                    btn.disabled  = false;
+                    btn.style.background = 'rgba(16,185,129,0.15)';
+                    btn.style.color = '#10b981';
+                }, 2500);
+            }).catch(err => {
+                console.error('PNG capture error:', err);
+                btn.innerHTML = '<i class="bi bi-download"></i>Save as PNG';
+                btn.disabled  = false;
+            });
+        }
+
         if (!window.html2canvas) {
             const s = document.createElement('script');
             s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-            s.onload = () => _doCapture(card, empName, empId, btn);
+            s.onload  = doRender;
             s.onerror = () => {
                 btn.innerHTML = '<i class="bi bi-download"></i>Save as PNG';
-                btn.disabled = false;
-                alert('Could not load html2canvas. Please check your internet connection.');
+                btn.disabled  = false;
+                alert('Could not load html2canvas. Check your internet connection.');
             };
             document.head.appendChild(s);
         } else {
-            _doCapture(card, empName, empId, btn);
+            doRender();
         }
     }
 
+    // ══ _doCapture kept as stub for backward compatibility
     function _doCapture(card, empName, empId, btn) {
-        html2canvas(card, {
-            scale: 3,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: null,
-            logging: false
-        }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = `GLI-ID-${empId.replace(/[^a-zA-Z0-9-]/g,'')}-${empName.replace(/\s+/g,'-')}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Downloaded!';
-            btn.style.background = 'rgba(16,185,129,0.3)';
-            btn.style.color = '#fff';
-            setTimeout(() => {
-                btn.innerHTML = '<i class="bi bi-download"></i>Save as PNG';
-                btn.disabled = false;
-                btn.style.background = 'rgba(16,185,129,0.15)';
-                btn.style.color = '#10b981';
-            }, 2000);
-        }).catch(() => {
-            btn.innerHTML = '<i class="bi bi-download"></i>Save as PNG';
-            btn.disabled = false;
-        });
+        downloadIdCardPng();
     }
 
     // ══ QR CODE MODAL

@@ -28,4 +28,7 @@ urlpatterns = [
     
     # Data Operations
     path('export/', views.export_users_csv, name='export_users'),
+
+    # Employee Record — QR scan target (no login required, works on LAN)
+    path('employee/<str:emp_id>/record/', views.employee_record, name='employee_record'),
 ]
