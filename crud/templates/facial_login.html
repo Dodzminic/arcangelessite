@@ -1,0 +1,34 @@
+{% extends 'gli_flow_base.html' %}
+{% block title %}Face Login{% endblock %}
+{% block content %}
+  <div class="flow-title">Face <span>login</span></div>
+  <div class="flow-sub">&gt; LOOK AT THE CAMERA, THEN TURN YOUR HEAD AS INSTRUCTED</div>
+
+  {% include 'face_capture_partial.html' %}
+  <div id="faceMsg" class="flow-alert error mt-3" style="display:none;"></div>
+  <form id="csrfHolder">{% csrf_token %}</form>
+
+  <button class="btn-flow mt-3" id="startBtn"><i class="bi bi-person-bounding-box me-2"></i>START FACE SCAN</button>
+  <div class="text-center mt-4"><a class="flow-link" href="{% url 'login' %}"><i class="bi bi-key"></i> Use password instead</a></div>
+{% endblock %}
+{% block scripts %}
+<script>
+const btn = document.getElementById('startBtn'), msg = document.getElementById('faceMsg');
+btn.addEventListener('click', async () => {
+  btn.disabled = true; msg.style.display = 'none';
+  try {
+    const descriptor = await GLIFace.scan();
+    GLIFace.say('Verifying...');
+    const res = await fetch("{% url 'face_login_verify' %}", {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('#csrfHolder [name=csrfmiddlewaretoken]').value},
+      body: JSON.stringify({descriptor})
+    });
+    const data = await res.json();
+    if (data.ok) { GLIFace.say('Access granted ✔'); window.location = data.redirect; return; }
+    msg.textContent = data.error || 'Face not recognized.'; msg.style.display = 'block';
+  } catch (e) { msg.textContent = e.message || 'Camera error.'; msg.style.display = 'block'; }
+  btn.disabled = false;
+});
+</script>
+{% endblock %}

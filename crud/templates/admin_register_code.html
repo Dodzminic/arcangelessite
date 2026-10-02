@@ -1,0 +1,23 @@
+{% extends 'gli_flow_base.html' %}
+{% block title %}Register Administrator — Step 1{% endblock %}
+{% block content %}
+  <div class="flow-title">Register <span>Administrator</span></div>
+  <div class="flow-sub">&gt; STEP 1 OF 3 · ONE-TIME CODE</div>
+
+  <form method="POST" class="mb-3">{% csrf_token %}
+    <input type="hidden" name="action" value="request_code">
+    <p style="color:var(--dim);font-size:13px;">A 6-digit code will be emailed to the two approvers. Ask them for it. New code can be requested every {{ cooldown }} seconds.</p>
+    <button class="btn-flow" type="submit"><i class="bi bi-envelope-paper-fill me-2"></i>SEND ONE-TIME CODE</button>
+  </form>
+
+  {% if has_code %}
+  <form method="POST">{% csrf_token %}
+    <input type="hidden" name="action" value="verify_code">
+    <label>Enter the 6-digit code</label>
+    <input type="text" name="code" class="form-control code-input mb-3" maxlength="6" inputmode="numeric" autocomplete="off" required autofocus>
+    <button class="btn-flow" type="submit"><i class="bi bi-shield-check me-2"></i>VERIFY CODE</button>
+  </form>
+  {% endif %}
+
+  <div class="text-center mt-4"><a class="flow-link" href="{% url 'login' %}"><i class="bi bi-arrow-left"></i> Back to login</a></div>
+{% endblock %}

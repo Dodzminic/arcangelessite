@@ -1,0 +1,13 @@
+{% extends 'gli_flow_base.html' %}
+{% block title %}Waiting for Approval{% endblock %}
+{% block content %}
+  <div class="text-center">
+    <i class="bi bi-hourglass-split hourglass" style="font-size:58px;color:var(--accent);"></i>
+    <div class="flow-title mt-2">Waiting for <span>approval</span></div>
+    <p style="color:var(--dim);font-size:13px;margin:14px 0 22px;">
+      Your request and face photo were sent to the approvers. Your account is created only after one of them approves it.
+      You will get an email with the result.
+    </p>
+    <a class="btn-flow text-decoration-none" href="{% url 'login' %}">BACK TO LOGIN</a>
+  </div>
+{% endblock %}

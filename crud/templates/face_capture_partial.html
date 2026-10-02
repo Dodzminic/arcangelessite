@@ -1,0 +1,83 @@
+{# Include with: {% include 'face_capture_partial.html' %}  then:  GLIFace.scan() → Promise<number[128]>; photo in GLIFace.lastPhoto #}
+<div class="face-box" id="faceBox">
+  <video id="faceVideo" autoplay muted playsinline></video>
+  <div class="face-ring"></div>
+  <div class="face-scan"></div>
+  <div class="face-ok"><i class="bi bi-check-circle-fill"></i></div>
+  <div class="face-status" id="faceStatus">Camera is off</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.js"></script>
+<script>
+window.GLIFace = (function () {
+  const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/';
+  const video = document.getElementById('faceVideo');
+  const box = document.getElementById('faceBox');
+  const statusEl = document.getElementById('faceStatus');
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  let stream = null, modelsReady = false;
+  const api = { scan: scan, stop: stop, say: say, lastPhoto: '' };
+
+  function say(t) { statusEl.textContent = t; }
+  function stop() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } box.classList.remove('live'); }
+
+  function snapshot() {
+    const c = document.createElement('canvas'); c.width = 320; c.height = 240;
+    c.getContext('2d').drawImage(video, 0, 0, 320, 240);
+    return c.toDataURL('image/jpeg', 0.72);
+  }
+
+  async function scan() {
+    if (!window.isSecureContext) throw new Error('Camera needs HTTPS or localhost.');
+    box.classList.remove('ok'); api.lastPhoto = '';
+    if (!modelsReady) {
+      say('Loading face models...');
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+      ]);
+      modelsReady = true;
+    }
+    say('Starting camera...');
+    stream = await navigator.mediaDevices.getUserMedia({ video: { width: 480, height: 360, facingMode: 'user' } });
+    video.srcObject = stream;
+    await video.play();
+    box.classList.add('live');
+
+    const opts = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
+    const started = Date.now();
+    let turned = false, stable = 0;
+
+    try {
+      while (true) {
+        if (Date.now() - started > 45000) throw new Error('Scan timed out. Please try again.');
+        const det = await faceapi.detectSingleFace(video, opts).withFaceLandmarks();
+        if (!det) { say('No face found. Face the camera.'); stable = 0; await sleep(120); continue; }
+
+        // Liveness: head must turn to a side, then come back to center (a still photo can't do this)
+        const p = det.landmarks.positions;
+        const ratio = (p[30].x - p[0].x) / (p[16].x - p[0].x);
+        if (!turned) {
+          say('Step 1: slowly turn your head to one side');
+          if (ratio < 0.36 || ratio > 0.64) turned = true;
+        } else {
+          say('Step 2: now look straight at the camera');
+          if (ratio > 0.42 && ratio < 0.58) {
+            if (++stable >= 4) {
+              const full = await faceapi.detectSingleFace(video, opts).withFaceLandmarks().withFaceDescriptor();
+              if (full) {
+                api.lastPhoto = snapshot();
+                box.classList.add('ok');
+                say('Face captured ✔');
+                return Array.from(full.descriptor);
+              }
+            }
+          } else stable = 0;
+        }
+        await sleep(100);
+      }
+    } finally { stop(); }
+  }
+  return api;
+})();
+</script>

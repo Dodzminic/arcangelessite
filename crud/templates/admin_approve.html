@@ -1,0 +1,37 @@
+{% extends 'gli_flow_base.html' %}
+{% block title %}Review Admin Request{% endblock %}
+{% block extra_css %}
+<style>
+  .applicant-photo{width:100%;max-width:260px;aspect-ratio:4/3;object-fit:cover;border-radius:16px;border:2px solid var(--accent);
+      box-shadow:0 0 30px rgba(61,127,255,.35);transform:scaleX(-1);animation:pop .6s cubic-bezier(.2,1.6,.4,1) both;}
+  .status-chip{display:inline-block;padding:3px 12px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:1px;}
+  .st-pending{background:rgba(245,158,11,.15);color:#fbbf24;} .st-approved{background:rgba(16,185,129,.15);color:#34d399;} .st-rejected{background:rgba(239,68,68,.15);color:#f87171;}
+</style>
+{% endblock %}
+{% block content %}
+  <div class="flow-title">Admin <span>request</span></div>
+  <div class="flow-sub">&gt; STATUS: <span class="status-chip st-{{ req.status }}">{{ req.status|upper }}</span></div>
+
+  {% if req.face_photo %}
+  <div class="text-center mb-3"><img class="applicant-photo" src="{{ req.face_photo }}" alt="Applicant face"></div>
+  {% endif %}
+
+  <table class="table table-borderless" style="color:var(--text);font-size:14px;">
+    <tr><td style="color:var(--dim)">Name</td><td>{{ req.full_name }}</td></tr>
+    <tr><td style="color:var(--dim)">Employee ID</td><td>{{ req.employee_id }}</td></tr>
+    <tr><td style="color:var(--dim)">Age</td><td>{{ req.age }}</td></tr>
+    <tr><td style="color:var(--dim)">Location</td><td>{{ req.location }}</td></tr>
+    <tr><td style="color:var(--dim)">Email</td><td>{{ req.email }}</td></tr>
+    <tr><td style="color:var(--dim)">Username</td><td>{{ req.username }}</td></tr>
+    <tr><td style="color:var(--dim)">Submitted</td><td>{{ req.created_at }}</td></tr>
+    {% if req.reviewed_by %}<tr><td style="color:var(--dim)">Reviewed by</td><td>{{ req.reviewed_by }}</td></tr>{% endif %}
+  </table>
+
+  {% if req.status == 'pending' %}
+  <form method="POST" class="d-flex gap-2">{% csrf_token %}
+    <button class="btn-flow btn-green" name="decision" value="approve" type="submit"><i class="bi bi-check-lg me-1"></i>APPROVE</button>
+    <button class="btn-flow btn-red" name="decision" value="reject" type="submit"><i class="bi bi-x-lg me-1"></i>REJECT</button>
+  </form>
+  {% endif %}
+  <div class="text-center mt-4"><a class="flow-link" href="{% url 'admin_panel' %}">Open Admin Approvals panel</a> &nbsp;·&nbsp; <a class="flow-link" href="{% url 'user_list' %}">Dashboard</a></div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'gli_flow_base.html' %}
+{% block title %}Unlock Admin Approvals{% endblock %}
+{% block content %}
+  <div class="text-center">
+    <i class="bi bi-shield-lock-fill" style="font-size:60px;color:var(--accent);animation:glowLock 2.4s ease-in-out infinite;display:inline-block;"></i>
+    <div class="flow-title mt-2">Admin Approvals <span>locked</span></div>
+    <div class="flow-sub">&gt; EXTRA SECURITY · EMAILED CODE REQUIRED</div>
+  </div>
+
+  <form method="POST" class="mb-3">{% csrf_token %}
+    <input type="hidden" name="action" value="send_code"><input type="hidden" name="next" value="{{ next }}">
+    <p style="color:var(--dim);font-size:13px;">A 6-digit code will be sent to <b style="color:var(--text)">{{ masked|join:", " }}</b>. New code every {{ cooldown }} seconds.</p>
+    <button class="btn-flow" type="submit"><i class="bi bi-envelope-paper-fill me-2"></i>SEND UNLOCK CODE</button>
+  </form>
+
+  {% if has_code %}
+  <form method="POST">{% csrf_token %}
+    <input type="hidden" name="action" value="verify_code"><input type="hidden" name="next" value="{{ next }}">
+    <label>Enter the 6-digit code</label>
+    <input type="text" name="code" class="form-control code-input mb-3" maxlength="6" inputmode="numeric" autocomplete="off" required autofocus>
+    <button class="btn-flow btn-green" type="submit"><i class="bi bi-unlock-fill me-2"></i>UNLOCK</button>
+  </form>
+  {% endif %}
+
+  <div class="text-center mt-4"><a class="flow-link" href="{% url 'user_list' %}"><i class="bi bi-arrow-left"></i> Back to dashboard</a></div>
+{% endblock %}

@@ -32,3 +32,21 @@ urlpatterns = [
     # Employee Record — QR scan target (no login required, works on LAN)
     path('employee/<str:emp_id>/record/', views.employee_record, name='employee_record'),
 ]
+
+
+# ═══ ADMIN REGISTRATION + FACE ID + ADMIN PANEL (added) ═══
+from . import admin_registration, facial_verification, admin_panel
+
+urlpatterns += [
+    path('admin-register/', admin_registration.register_start, name='admin_register'),
+    path('admin-register/form/', admin_registration.register_form, name='admin_register_form'),
+    path('admin-register/pending/', admin_registration.register_pending, name='admin_register_pending'),
+    path('admin-approve/<str:token>/', admin_registration.approve_request, name='admin_approve'),
+
+    path('face-login/', facial_verification.face_login_page, name='face_login'),
+    path('face-login/verify/', facial_verification.face_login_verify, name='face_login_verify'),
+
+    # Admin Approvals panel (superuser + emailed unlock code)
+    path('admin-panel/', admin_panel.panel_home, name='admin_panel'),
+    path('admin-panel/unlock/', admin_panel.panel_unlock, name='admin_panel_unlock'),
+]

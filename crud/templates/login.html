@@ -1125,6 +1125,18 @@
             </button>
         </form>
 
+        <div style="display:flex;align-items:center;gap:10px;margin:18px 0 12px;color:var(--text-dim);font-size:11px;letter-spacing:2px;">
+            <span style="flex:1;height:1px;background:var(--border);"></span>OR<span style="flex:1;height:1px;background:var(--border);"></span>
+        </div>
+        <a href="{% url 'face_login' %}" class="btn-login" style="display:block;text-align:center;text-decoration:none;">
+            <i class="bi bi-person-bounding-box me-2"></i>LOGIN WITH FACE
+        </a>
+        <div style="text-align:center;margin-top:14px;">
+            <a href="{% url 'admin_register' %}" style="color:var(--accent);font-size:12px;text-decoration:none;">
+                <i class="bi bi-person-plus-fill me-1"></i>Register new administrator
+            </a>
+        </div>
+
         <div class="security-badge">
             <i class="bi bi-shield-lock-fill"></i>
             <span>256-bit encrypted &bull; Admin access only</span>

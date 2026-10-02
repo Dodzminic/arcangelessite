@@ -85,3 +85,28 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
+
+# ═══ EMAIL / ADMIN SECURITY (added) — paste at the very bottom of arcangelessite/settings.py ═══
+ADMIN_APPROVER_EMAILS = [
+    'dodzmotovlog@gmail.com',
+    'kyoshidecastro@gmail.com',
+]
+ADMIN_REG_CODE_MINUTES = 10      # one-time code lifetime
+ADMIN_REG_CODE_COOLDOWN = 60     # seconds before another code can be requested
+
+# The SENDING Gmail + its Google App Password come from environment variables (never type them here)
+GLI_EMAIL_USER = os.environ.get('GLI_EMAIL_USER', '')
+GLI_EMAIL_APP_PASSWORD = os.environ.get('GLI_EMAIL_APP_PASSWORD', '')
+
+if GLI_EMAIL_USER and GLI_EMAIL_APP_PASSWORD:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = GLI_EMAIL_USER
+    EMAIL_HOST_PASSWORD = GLI_EMAIL_APP_PASSWORD
+    DEFAULT_FROM_EMAIL = f'GLI Security <{GLI_EMAIL_USER}>'
+else:
+    # Test mode: emails print in the terminal instead of being sent
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'GLI Security <noreply@localhost>'

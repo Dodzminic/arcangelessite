@@ -1,0 +1,59 @@
+{% extends 'gli_flow_base.html' %}
+{% block title %}Register Administrator — Step 2{% endblock %}
+{% block cardclass %}wide{% endblock %}
+{% block content %}
+  <div class="flow-title">Administrator <span>Details</span></div>
+  <div class="flow-sub">&gt; STEP 2 OF 3 · BASIC INFO + FACE REGISTRATION</div>
+
+  <form method="POST" id="regForm">{% csrf_token %}
+    <div class="row g-3">
+      <div class="col-12"><label>Full name</label><input class="form-control" name="full_name" value="{{ v.full_name }}" required></div>
+      <div class="col-6"><label>Employee ID</label><input class="form-control" name="employee_id" value="{{ v.employee_id }}" required></div>
+      <div class="col-6"><label>Age</label><input type="number" min="18" max="100" class="form-control" name="age" value="{{ v.age }}" required></div>
+      <div class="col-12"><label>Location</label><input class="form-control" name="location" value="{{ v.location }}" required></div>
+      <div class="col-12"><label>Email</label><input type="email" class="form-control" name="email" value="{{ v.email }}" required></div>
+      <div class="col-12"><label>Username</label><input class="form-control" name="username" value="{{ v.username }}" required autocomplete="off"></div>
+      <div class="col-6"><label>Password</label><input type="password" class="form-control" name="password" required autocomplete="new-password"></div>
+      <div class="col-6"><label>Confirm password</label><input type="password" class="form-control" name="confirm_password" required autocomplete="new-password"></div>
+    </div>
+
+    <hr style="border-color:var(--border);margin:22px 0;">
+    <label>Face registration</label>
+    {% include 'face_capture_partial.html' %}
+    <input type="hidden" name="face_descriptor" id="faceDescriptor">
+    <input type="hidden" name="face_photo" id="facePhoto">
+
+    <div class="d-flex align-items-center gap-3 mt-2">
+      <img id="facePreview" class="face-preview" alt="Captured face">
+      <div id="previewNote" style="display:none;font-size:12px;color:var(--dim);">This photo will be shown to the approvers.</div>
+    </div>
+    <button type="button" class="btn-flow btn-ghost mt-2" id="scanBtn"><i class="bi bi-camera-video-fill me-2"></i>START FACE SCAN</button>
+
+    <button class="btn-flow mt-3" type="submit" id="submitBtn" disabled><i class="bi bi-send-fill me-2"></i>SUBMIT FOR APPROVAL</button>
+  </form>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('scanBtn').addEventListener('click', async function () {
+  this.disabled = true;
+  try {
+    const d = await GLIFace.scan();
+    document.getElementById('faceDescriptor').value = JSON.stringify(d);
+    document.getElementById('facePhoto').value = GLIFace.lastPhoto;
+    const pv = document.getElementById('facePreview');
+    pv.src = GLIFace.lastPhoto; pv.classList.remove('show'); void pv.offsetWidth; pv.classList.add('show');
+    document.getElementById('previewNote').style.display = 'block';
+    document.getElementById('submitBtn').disabled = false;
+    this.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>FACE CAPTURED (scan again)';
+  } catch (e) { GLIFace.say(e.message || 'Camera error'); }
+  this.disabled = false;
+});
+
+// Prevent double-click: lock the button while the email is being sent
+document.getElementById('regForm').addEventListener('submit', function () {
+  const b = document.getElementById('submitBtn');
+  b.disabled = true;
+  b.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>SENDING... PLEASE WAIT';
+});
+</script>
+{% endblock %}
