@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.utils.crypto import constant_time_compare
 from django.utils.http import url_has_allowed_host_and_scheme
 
+from . import email_templates as et
 from .admin_registration import (
     panel_required, decide_request, _hash_code, _mail,
     PANEL_UNLOCK_MINUTES, MAX_CODE_ATTEMPTS,
@@ -23,7 +24,7 @@ from .models import ActivityLog, AdminFace, AdminOTP, AdminRegistrationRequest
 
 
 def _panel_emails():
-    # Optional override in settings.py:  ADMIN_SPANEL_CODE_EMAILS = ['you@gmail.com']
+    # Optional override in settings.py:  ADMIN_PANEL_CODE_EMAILS = ['you@gmail.com']
     return getattr(settings, 'ADMIN_PANEL_CODE_EMAILS', ['kyoshidecastro@gmail.com'])
 
 
@@ -63,6 +64,7 @@ def panel_unlock(request):
                 purpose='panel', code_hash=_hash_code(code),
                 expires_at=timezone.now() + timedelta(minutes=minutes),
             )
+            html, imgs = et.code_email('panel', code, minutes, who=request.user.username, ip=request.META.get('REMOTE_ADDR'))
             try:
                 _mail(
                     "GLI Admin Panel — Unlock Code",
@@ -70,6 +72,7 @@ def panel_unlock(request):
                     f"Unlock code: {code}\nValid for {minutes} minutes, single use.\n\n"
                     f"If this was not you, do NOT share this code and change your password.",
                     _panel_emails(),
+                    html=html, inline_images=imgs,
                 )
             except Exception as e:
                 otp.is_used = True

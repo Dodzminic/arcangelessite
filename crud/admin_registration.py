@@ -5,10 +5,13 @@ Flow: request code (emailed to both approvers) -> enter code -> fill form + face
 Also holds the shared helpers used by the Admin Approvals panel (panel_required, decide_request).
 """
 import base64
+import email.message
+import email.policy
 import json
 import re
 import secrets
 from datetime import timedelta
+from email.utils import formatdate, make_msgid
 from functools import wraps
 from urllib.parse import quote
 
@@ -18,13 +21,15 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
+from django.core.mail.utils import DNS_NAME
 from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import salted_hmac, constant_time_compare
 
+from . import email_templates as et
 from .facial_verification import parse_descriptor, find_matching_face
 from .models import ActivityLog, AdminOTP, AdminRegistrationRequest, AdminFace
 
@@ -39,11 +44,48 @@ def _hash_code(code):
     return salted_hmac('gli-admin-otp', code).hexdigest()
 
 
-def _mail(subject, body, to, attachments=None):
-    msg = EmailMessage(subject, body, settings.DEFAULT_FROM_EMAIL, to)
-    for name, data, mime in (attachments or []):
-        msg.attach(name, data, mime)
-    msg.send(fail_silently=False)
+class _SmtpMsg(email.message.EmailMessage):
+    """Accepts the old `linesep=` argument too, so it works on every Django version."""
+    def as_bytes(self, unixfrom=False, policy=None, linesep=None):
+        policy = policy or self.policy
+        if linesep:
+            policy = policy.clone(linesep=linesep)
+        return super().as_bytes(unixfrom=unixfrom, policy=policy)
+
+
+class _GliMail(EmailMultiAlternatives):
+    """Builds the email itself (text + designed HTML + embedded cid: images + attachments)."""
+
+    def __init__(self, subject, body, to, html=None, inline_images=None, attachments=None):
+        super().__init__(subject, body, settings.DEFAULT_FROM_EMAIL, to)
+        if html:
+            self.attach_alternative(html, "text/html")
+        self._inline = list(inline_images or [])
+        self._files = list(attachments or [])
+
+    def message(self, *args, **kwargs):
+        m = _SmtpMsg(policy=email.policy.SMTP)
+        m['Subject'] = self.subject
+        m['From'] = self.from_email
+        m['To'] = ', '.join(self.to)
+        m['Date'] = formatdate(localtime=True)
+        m['Message-ID'] = make_msgid(domain=str(DNS_NAME))
+        m.set_content(self.body)
+        if self.alternatives:
+            m.add_alternative(self.alternatives[0][0], subtype='html')
+            html_part = m.get_payload()[-1]
+            for cid, data, subtype in self._inline:
+                html_part.add_related(data, 'image', subtype, cid=f'<{cid}>',
+                                      disposition='inline', filename=f'{cid}.{subtype}')
+        for name, data, mime in self._files:
+            maintype, subtype = mime.split('/', 1)
+            m.add_attachment(data, maintype=maintype, subtype=subtype, filename=name)
+        return m
+
+
+def _mail(subject, body, to, attachments=None, html=None, inline_images=None):
+    """Send a plain-text email, optionally with a designed HTML version + embedded (cid:) images."""
+    _GliMail(subject, body, to, html=html, inline_images=inline_images, attachments=attachments).send(fail_silently=False)
 
 
 def photo_bytes(data_url):
@@ -93,6 +135,7 @@ def decide_request(request, req, decision):
         ActivityLog.objects.create(action=f"Admin '{req.username}' APPROVED by '{request.user.username}'.")
         subject = "Your GLI admin account was approved"
         body = f"Hi {req.full_name}, you can now log in with your password or Face ID."
+        html, imgs = et.result_email(req.full_name, True, request.build_absolute_uri('/login/'))
     elif decision == 'reject':
         req.status = 'rejected'
         req.face_descriptor = ''   # drop biometric data of rejected applicants
@@ -100,13 +143,14 @@ def decide_request(request, req, decision):
         ActivityLog.objects.create(action=f"Admin request '{req.username}' REJECTED by '{request.user.username}'.")
         subject = "Your GLI admin request was declined"
         body = f"Hi {req.full_name}, your administrator registration was not approved."
+        html, imgs = et.result_email(req.full_name, False, request.build_absolute_uri('/login/'))
     else:
         return False
 
     req.reviewed_at, req.reviewed_by = timezone.now(), request.user.username
     req.save()
     try:
-        _mail(subject, body, [req.email])
+        _mail(subject, body, [req.email], html=html, inline_images=imgs)
     except Exception:
         pass
     messages.success(request, f"Request {req.status}: {req.full_name}.")
@@ -134,6 +178,7 @@ def register_start(request):
                 code_hash=_hash_code(code),
                 expires_at=timezone.now() + timedelta(minutes=minutes),
             )
+            html, imgs = et.code_email('register', code, minutes, ip=request.META.get('REMOTE_ADDR'))
             try:
                 _mail(
                     "GLI Admin Registration — One-Time Code",
@@ -142,6 +187,7 @@ def register_start(request):
                     f"Valid for {minutes} minutes, single use.\n\n"
                     f"Only give this code to the person you are expecting. If this was not expected, ignore this email.",
                     settings.ADMIN_APPROVER_EMAILS,
+                    html=html, inline_images=imgs,
                 )
             except Exception as e:
                 otp.is_used = True
@@ -254,6 +300,7 @@ def register_form(request):
                 token=secrets.token_urlsafe(32),
             )
             link = request.build_absolute_uri(f"/admin-approve/{req.token}/")
+            html, imgs = et.approval_email(req, link, photo_bytes(photo))
             try:
                 _mail(
                     "GLI Admin Registration — APPROVAL NEEDED",
@@ -263,6 +310,7 @@ def register_form(request):
                     f"Review (superuser login + emailed unlock code required):\n{link}\n",
                     settings.ADMIN_APPROVER_EMAILS,
                     attachments=[('applicant_face.jpg', photo_bytes(photo), 'image/jpeg')],
+                    html=html, inline_images=imgs,
                 )
             except Exception:
                 pass  # request is still saved; it will show in the Admin Approvals panel
